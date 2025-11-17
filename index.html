@@ -93,6 +93,11 @@
             border-color: var(--neon-pink);
             box-shadow: 0 0 20px rgba(188, 19, 254, 0.4), inset 0 0 20px rgba(188, 19, 254, 0.1);
         }
+        
+        .widget.yellow-mode.active:hover {
+             border-color: var(--neon-yellow);
+             box-shadow: 0 0 20px rgba(252, 227, 0, 0.4), inset 0 0 20px rgba(252, 227, 0, 0.1);
+        }
 
         /* 施工中卡片樣式 */
         .widget.disabled {
@@ -153,6 +158,11 @@
             background-color: var(--neon-pink);
             box-shadow: 0 0 8px var(--neon-pink);
         }
+        
+        .widget.yellow-mode .status-light {
+            background-color: var(--neon-yellow);
+            box-shadow: 0 0 8px var(--neon-yellow);
+        }
 
         .widget.disabled .status-light {
             background-color: #555;
@@ -164,7 +174,7 @@
 <body>
 
     <div class="container">
-        <h1>TEACHING_HUB <span style="font-size:0.5em; opacity:0.6;">v2.0</span></h1>
+        <h1>TEACHING_HUB <span style="font-size:0.5em; opacity:0.6;">v2.1</span></h1>
         
         <div class="grid-box">
 
@@ -186,6 +196,60 @@
                 </div>
             </a>
 
+            <a href="timer.html" class="widget active yellow-mode">
+                <div class="status-light"></div>
+                <div class="icon">⏲️</div>
+                <div>
+                    <div class="widget-subtitle">SYSTEM 03</div>
+                    <div class="widget-title">萬用鐘</div>
+                </div>
+            </a>
+
+            <div class="widget disabled">
+                <div class="status-light"></div>
+                <div class="icon">🚧</div>
+                <div>
+                    <div class="widget-subtitle">LOCKED</div>
+                    <div class="widget-title">施工中</div>
+                </div>
+            </div>
+
+            <div class="widget disabled">
+                <div class="status-light"></div>
+                <div class="icon">🚧</div>
+                <div>
+                    <div class="widget-subtitle">LOCKED</div>
+                    <div class="widget-title">施工中</div>
+                </div>
+            </div>
+
+            <div class="widget disabled">
+                <div class="status-light"></div>
+                <div class="icon">🚧</div>
+                <div>
+                    <div class="widget-subtitle">LOCKED</div>
+                    <div class="widget-title">施工中</div>
+                </div>
+            </div>
+
+            <div class="widget disabled">
+                <div class="status-light"></div>
+                <div class="icon">🚧</div>
+                <div>
+                    <div class="widget-subtitle">LOCKED</div>
+                    <div class="widget-title">施工中</div>
+                </div>
+            </div>
+
+            <div class="widget disabled">
+                <div class="status-light"></div>
+                <div class="icon">🚧</div>
+                <div>
+                    <div class="widget-subtitle">LOCKED</div>
+                    <div class="widget-title">施工中</div>
+                </div>
+            </div>
+
             <a href="area/symmetry01.html" class="widget active">
                 <div class="status-light"></div>
                 <div class="icon">💠</div>
@@ -203,60 +267,6 @@
                     <div class="widget-title">線對稱教學 02</div>
                 </div>
             </a>
-
-            <div class="widget disabled">
-                <div class="status-light"></div>
-                <div class="icon">🚧</div>
-                <div>
-                    <div class="widget-subtitle">LOCKED</div>
-                    <div class="widget-title">施工中</div>
-                </div>
-            </div>
-
-            <div class="widget disabled">
-                <div class="status-light"></div>
-                <div class="icon">🚧</div>
-                <div>
-                    <div class="widget-subtitle">LOCKED</div>
-                    <div class="widget-title">施工中</div>
-                </div>
-            </div>
-
-            <div class="widget disabled">
-                <div class="status-light"></div>
-                <div class="icon">🚧</div>
-                <div>
-                    <div class="widget-subtitle">LOCKED</div>
-                    <div class="widget-title">施工中</div>
-                </div>
-            </div>
-
-            <div class="widget disabled">
-                <div class="status-light"></div>
-                <div class="icon">🚧</div>
-                <div>
-                    <div class="widget-subtitle">LOCKED</div>
-                    <div class="widget-title">施工中</div>
-                </div>
-            </div>
-
-            <div class="widget disabled">
-                <div class="status-light"></div>
-                <div class="icon">🚧</div>
-                <div>
-                    <div class="widget-subtitle">LOCKED</div>
-                    <div class="widget-title">施工中</div>
-                </div>
-            </div>
-
-            <div class="widget disabled">
-                <div class="status-light"></div>
-                <div class="icon">🚧</div>
-                <div>
-                    <div class="widget-subtitle">LOCKED</div>
-                    <div class="widget-title">施工中</div>
-                </div>
-            </div>
 
         </div>
     </div>
