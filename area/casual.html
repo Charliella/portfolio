@@ -128,9 +128,56 @@
             box-shadow: 0 0 10px var(--neon-blue);
         }
 
+        /* --- 施工中 / 錯誤狀態樣式 --- */
+        .construction-msg {
+            display: none; /* 預設隱藏 */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.3);
+            text-align: center;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(0,0,0,0),
+                rgba(0,0,0,0) 10px,
+                rgba(255, 255, 255, 0.02) 10px,
+                rgba(255, 255, 255, 0.02) 20px
+            );
+        }
+        
+        .construction-msg i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .construction-msg span {
+            font-family: 'Orbitron';
+            letter-spacing: 2px;
+            font-size: 1.2rem;
+        }
+
+        /* 當父容器有 error-state 時的行為 */
+        .widget-content.error-state .preview-img,
+        .widget-content.error-state .preview-pdf,
+        .widget-content.error-state .expand-btn {
+            display: none !important;
+        }
+
+        .widget-content.error-state .construction-msg {
+            display: flex;
+        }
+        
+        .widget-content.error-state {
+            border: 1px dashed #555;
+        }
+
+
         /* --- Modal (彈出視窗) 樣式 --- */
         .modal-overlay {
-            display: none; /* 預設隱藏 */
+            display: none;
             position: fixed; z-index: 1000;
             left: 0; top: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.9);
@@ -181,6 +228,7 @@
                 <a href="https://mail.google.com" target="_blank" class="link-btn"><i class="fas fa-envelope"></i> Gmail</a>
                 <a href="https://chatgpt.com" target="_blank" class="link-btn"><i class="fas fa-robot"></i> ChatGPT</a>
                 <a href="https://gemini.google.com" target="_blank" class="link-btn"><i class="fas fa-brain"></i> Gemini</a>
+                <a href="https://dict.concised.moe.edu.tw/" target="_blank" class="link-btn"><i class="fas fa-book"></i> 簡編本</a>
             </div>
         </div>
 
@@ -198,15 +246,25 @@
             <div class="widget-header"><span><i class="fas fa-calendar-alt"></i> 班級課表</span></div>
             <div class="widget-content">
                 <button class="expand-btn" onclick="openModal('img', 'img1.jpg')"><i class="fas fa-expand"></i></button>
-                <img src="img1.jpg" class="preview-img" onerror="this.style.display='none'">
+                <img src="img1.jpg" class="preview-img" onerror="this.parentElement.classList.add('error-state')">
+                
+                <div class="construction-msg">
+                    <i class="fas fa-hard-hat"></i>
+                    <span>LOCKED / 施工中</span>
+                </div>
             </div>
         </div>
 
         <div class="widget pdf-widget">
             <div class="widget-header"><span><i class="fas fa-calendar-check"></i> 上石行事曆</span></div>
-            <div class="widget-content">
+            <div class="widget-content" data-pdf-src="doc1.pdf">
                 <button class="expand-btn" onclick="openModal('pdf', 'doc1.pdf')"><i class="fas fa-expand"></i></button>
-                <iframe src="doc1.pdf" class="preview-pdf"></iframe>
+                <iframe class="preview-pdf"></iframe>
+                
+                <div class="construction-msg">
+                    <i class="fas fa-hard-hat"></i>
+                    <span>LOCKED / 施工中</span>
+                </div>
             </div>
         </div>
 
@@ -214,7 +272,12 @@
             <div class="widget-header"><span><i class="fas fa-image"></i> 視覺資料 03</span></div>
             <div class="widget-content">
                 <button class="expand-btn" onclick="openModal('img', 'img3.jpg')"><i class="fas fa-expand"></i></button>
-                <img src="img3.jpg" class="preview-img" onerror="this.style.display='none'">
+                <img src="img3.jpg" class="preview-img" onerror="this.parentElement.classList.add('error-state')">
+                
+                <div class="construction-msg">
+                    <i class="fas fa-hard-hat"></i>
+                    <span>LOCKED / 施工中</span>
+                </div>
             </div>
         </div>
 
@@ -222,23 +285,38 @@
             <div class="widget-header"><span><i class="fas fa-image"></i> 視覺資料 02</span></div>
             <div class="widget-content">
                 <button class="expand-btn" onclick="openModal('img', 'img2.jpg')"><i class="fas fa-expand"></i></button>
-                <img src="img2.jpg" class="preview-img" onerror="this.style.display='none'">
+                <img src="img2.jpg" class="preview-img" onerror="this.parentElement.classList.add('error-state')">
+                
+                <div class="construction-msg">
+                    <i class="fas fa-hard-hat"></i>
+                    <span>LOCKED / 施工中</span>
+                </div>
             </div>
         </div>
 
         <div class="widget pdf-widget">
             <div class="widget-header"><span><i class="fas fa-file-pdf"></i> 合約文本 02</span></div>
-            <div class="widget-content">
+            <div class="widget-content" data-pdf-src="doc2.pdf">
                 <button class="expand-btn" onclick="openModal('pdf', 'doc2.pdf')"><i class="fas fa-expand"></i></button>
-                <iframe src="doc2.pdf" class="preview-pdf"></iframe>
+                <iframe class="preview-pdf"></iframe>
+
+                <div class="construction-msg">
+                    <i class="fas fa-hard-hat"></i>
+                    <span>LOCKED / 施工中</span>
+                </div>
             </div>
         </div>
 
         <div class="widget pdf-widget">
             <div class="widget-header"><span><i class="fas fa-file-pdf"></i> 合約文本 03</span></div>
-            <div class="widget-content">
+            <div class="widget-content" data-pdf-src="doc3.pdf">
                 <button class="expand-btn" onclick="openModal('pdf', 'doc3.pdf')"><i class="fas fa-expand"></i></button>
-                <iframe src="doc3.pdf" class="preview-pdf"></iframe>
+                <iframe class="preview-pdf"></iframe>
+                
+                <div class="construction-msg">
+                    <i class="fas fa-hard-hat"></i>
+                    <span>LOCKED / 施工中</span>
+                </div>
             </div>
         </div>
 
@@ -253,6 +331,36 @@
     </div>
 
     <script>
+        /* --- 處理 PDF 載入檢查的腳本 --- */
+        document.addEventListener("DOMContentLoaded", function() {
+            const pdfContainers = document.querySelectorAll('.widget-content[data-pdf-src]');
+            
+            pdfContainers.forEach(container => {
+                const src = container.getAttribute('data-pdf-src');
+                const iframe = container.querySelector('iframe');
+
+                // 使用 fetch 嘗試檢查檔案是否存在
+                // 注意：如果您是直接點開 html 檔案 (file://)，fetch 會有 CORS 錯誤或被阻擋
+                // 這種情況下會直接進入 catch 顯示施工中，這是正常的安全機制
+                fetch(src, { method: 'HEAD' })
+                    .then(response => {
+                        if (response.ok) {
+                            // 檔案存在，設定 iframe src
+                            iframe.src = src;
+                        } else {
+                            // 檔案不存在 (404)，顯示施工中
+                            container.classList.add('error-state');
+                        }
+                    })
+                    .catch(error => {
+                        // 發生錯誤 (例如本機執行 file:// 導致 fetch 失敗)，顯示施工中
+                        console.log("PDF load skipped (Construction Mode):", src);
+                        container.classList.add('error-state');
+                    });
+            });
+        });
+
+        /* --- Modal 邏輯 --- */
         function openModal(type, src) {
             const modal = document.getElementById('myModal');
             const modalImg = document.getElementById('modal-img');
@@ -276,15 +384,13 @@
         }
 
         function closeModal(event) {
-            // 點擊背景時才關閉
             if (event.target.classList.contains('modal-overlay')) {
                 document.getElementById('myModal').style.display = 'none';
-                document.getElementById('modal-pdf').src = ""; // 停止 PDF 讀取
+                document.getElementById('modal-pdf').src = ""; 
             }
         }
 
         function closeModalForce() {
-            // 點擊 X 按鈕強制關閉
             document.getElementById('myModal').style.display = 'none';
             document.getElementById('modal-pdf').src = "";
         }
