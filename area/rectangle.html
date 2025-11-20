@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四邊形家族與面積魔法 (終極修復版)</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --primary: #4338ca;      /* 靛藍 */
+            --accent: #ea580c;       /* 亮橘 (切割塊) */
+            --panel-bg: #ffffff;
+            --border: #cbd5e1;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 { margin-bottom: 5px; color: var(--primary); }
+        p.subtitle { color: #64748b; margin-bottom: 20px; }
+
+        /* 分頁按鈕 */
+        .nav-container {
+            display: flex; gap: 15px; background: white; padding: 8px;
+            border-radius: 50px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px;
+        }
+        .nav-btn {
+            padding: 10px 30px; border: none; background: transparent;
+            border-radius: 40px; font-size: 1.1rem; font-weight: bold;
+            color: #64748b; cursor: pointer; transition: all 0.2s;
+        }
+        .nav-btn.active { background-color: var(--primary); color: white; box-shadow: 0 4px 6px rgba(67, 56, 202, 0.3); }
+
+        /* 區塊顯示 */
+        .section { display: none; width: 100%; max-width: 1200px; animation: fadeIn 0.3s ease-in; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* === 分頁1: 家族圖 === */
+        .family-map { display: flex; flex-direction: column; align-items: center; gap: 30px; }
+        .root-box {
+            border: 3px solid var(--border); background: white; padding: 15px 50px;
+            border-radius: 12px; font-weight: bold; font-size: 1.2rem;
+        }
+        .split-row { display: flex; width: 100%; gap: 40px; justify-content: center; }
+        .group-box {
+            flex: 1; background: white; border-radius: 16px; padding: 25px;
+            border-top: 6px solid #ccc; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .venn-grid {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;
+            position: relative; padding-top: 40px; margin-top: 20px;
+        }
+        .set-dashed {
+            position: absolute; top: 0; bottom: 0; border-radius: 12px;
+            border: 2px dashed; pointer-events: none;
+        }
+        .card {
+            background: white; border: 2px solid #e2e8f0; border-radius: 12px;
+            padding: 15px; text-align: center; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+
+        /* === 分頁2: 面積實驗室 === */
+        .lab-layout {
+            display: flex; gap: 25px; justify-content: center; flex-wrap: wrap;
+        }
+        .control-panel {
+            width: 280px; background: white; padding: 25px;
+            border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); height: fit-content;
+        }
+        
+        .tool-btn {
+            display: block; width: 100%; padding: 15px; margin-bottom: 12px;
+            background: white; border: 2px solid #e2e8f0; border-radius: 10px;
+            cursor: pointer; font-size: 1rem; font-weight: bold; text-align: left;
+            transition: all 0.2s;
+        }
+        .tool-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .tool-btn.selected { border-color: var(--primary); background: #e0e7ff; color: var(--primary); }
+
+        .play-btn {
+            width: 100%; padding: 15px; margin-top: 20px; border-radius: 10px;
+            border: none; color: white; font-weight: bold; font-size: 1.2rem; cursor: pointer;
+            background: linear-gradient(135deg, #ea580c, #c2410c); /* 鮮豔橘 */
+            box-shadow: 0 4px 0 #9a3412; transition: transform 0.1s;
+        }
+        .play-btn:active { transform: translateY(3px); box-shadow: none; }
+        .play-btn:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
+
+        .reset-btn {
+            width: 100%; padding: 10px; margin-top: 10px; background: #cbd5e1;
+            border: none; border-radius: 8px; color: #475569; font-weight: bold; cursor: pointer;
+        }
+        .reset-btn:hover { background: #94a3b8; color: white; }
+
+        .canvas-container {
+            flex: 1; background: white; padding: 20px;
+            border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        canvas {
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
+            border: 2px dashed #94a3b8;
+            border-radius: 12px;
+            cursor: crosshair;
+            touch-action: none; /* 防止觸控捲動 */
+        }
+
+        .formula-bar {
+            margin-top: 15px; width: 95%; padding: 15px;
+            background: #eff6ff; border-left: 5px solid var(--primary);
+            color: #1e3a8a; font-weight: bold; font-size: 1.2rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>四邊形家族與面積魔法 (終極修復版)</h1>
+    <p class="subtitle">拖曳藍色圓點改變形狀，點擊橘色按鈕觀看切割動畫</p>
+
+    <div class="nav-container">
+        <button class="nav-btn active" onclick="switchTab('family')">1. 家族關係圖</button>
+        <button class="nav-btn" onclick="switchTab('lab')">2. 面積實驗室</button>
+    </div>
+
+    <!-- 分頁 1 -->
+    <div id="tab-family" class="section active">
+        <div class="family-map">
+            <div class="root-box">任意四邊形</div>
+            <div class="split-row">
+                <!-- 梯形 -->
+                <div class="group-box" style="border-color: #d97706;">
+                    <h3 style="color:#d97706; margin:0 0 10px 0;">梯形家族</h3>
+                    <p style="color:#666; font-size:0.9rem;">定義：只有一組對邊平行</p>
+                    <div class="card" style="border-color:#d97706;">
+                        <b>梯形 / 等腰梯形</b>
+                        <canvas id="icon-trap" width="120" height="70"></canvas>
+                    </div>
+                </div>
+                <!-- 平行四邊形 -->
+                <div class="group-box" style="border-color: #059669;">
+                    <h3 style="color:#059669; margin:0 0 10px 0;">平行四邊形家族</h3>
+                    <p style="color:#666; font-size:0.9rem;">定義：兩組對邊分別平行</p>
+                    
+                    <div class="venn-grid">
+                        <div class="set-dashed" style="left:0; right:35%; border-color:#2563eb; background:rgba(37,99,235,0.05);"><span style="position:absolute;top:5px;left:5px;font-size:0.8rem;color:#2563eb;font-weight:bold;">長方形集合</span></div>
+                        <div class="set-dashed" style="right:0; left:35%; border-color:#7c3aed; background:rgba(124,58,237,0.05);"><span style="position:absolute;bottom:5px;right:5px;font-size:0.8rem;color:#7c3aed;font-weight:bold;">菱形集合</span></div>
+
+                        <div class="card" style="grid-column:1; border-color:#2563eb;"><b>長方形</b><canvas id="icon-rect" width="60" height="40"></canvas></div>
+                        <div class="card" style="grid-column:2; border-color:#db2777; transform:scale(1.1); z-index:5;"><b>正方形</b><canvas id="icon-sq" width="50" height="50"></canvas></div>
+                        <div class="card" style="grid-column:3; border-color:#7c3aed;"><b>菱形</b><canvas id="icon-rhom" width="60" height="40"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分頁 2 -->
+    <div id="tab-lab" class="section">
+        <div class="lab-layout">
+            <div class="control-panel">
+                <button class="tool-btn selected" onclick="setTool('para')">▱ 平行四邊形</button>
+                <button class="tool-btn" onclick="setTool('tri')">△ 三角形</button>
+                <button class="tool-btn" onclick="setTool('trap')">⏢ 梯形</button>
+                
+                <div style="margin-top:20px; color:#64748b; font-size:0.9rem;">
+                    提示：<br>
+                    1. 隨意拖曳藍色圓點<br>
+                    2. 嘗試將平行四邊形拉得很扁<br>
+                    3. 按下按鈕觀察結果
+                </div>
+
+                <button id="animBtn" class="play-btn" onclick="startAnim()">▶ 面積切割動畫</button>
+                <button class="reset-btn" onclick="resetShape()">↺ 重置畫布</button>
+            </div>
+
+            <div class="canvas-container">
+                <!-- 畫布尺寸設定 800x600 -->
+                <canvas id="labCanvas" width="800" height="600"></canvas>
+                <div class="formula-bar" id="formula-text">平行四邊形面積 = 底 × 高</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* =========================================
+           核心數學庫 (Vector Math) - 確保計算穩定
+           ========================================= */
+        const Vec = {
+            add: (v1, v2) => ({x: v1.x + v2.x, y: v1.y + v2.y}),
+            sub: (v1, v2) => ({x: v1.x - v2.x, y: v1.y - v2.y}),
+            mul: (v, s) => ({x: v.x * s, y: v.y * s}),
+            dot: (v1, v2) => v1.x * v2.x + v1.y * v2.y,
+            magSq: (v) => v.x*v.x + v.y*v.y,
+            mag: (v) => Math.sqrt(v.x*v.x + v.y*v.y),
+            norm: (v) => {
+                const m = Math.sqrt(v.x*v.x + v.y*v.y);
+                return m < 0.0001 ? {x:0, y:0} : {x: v.x/m, y: v.y/m};
+            },
+            project: (p, a, b) => {
+                // 投影點 P 到線段 AB 所在的直線上
+                const ab = Vec.sub(b, a);
+                const ap = Vec.sub(p, a);
+                const lenSq = Vec.magSq(ab);
+                if(lenSq < 0.0001) return a; // 防止除以零
+                const t = Vec.dot(ap, ab) / lenSq;
+                return Vec.add(a, Vec.mul(ab, t));
+            }
+        };
+
+        /* =========================================
+           全域狀態
+           ========================================= */
+        let currentTool = 'para';
+        let points = [];
+        let dragIdx = -1;
+        let isAnim = false;
+        let animProgress = 0;
+        let animId = null;
+
+        const canvas = document.getElementById('labCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 初始化
+        window.onload = () => {
+            drawIcons();
+            resetShape();
+        };
+
+        /* =========================================
+           互動與工具切換
+           ========================================= */
+        function switchTab(tab) {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            
+            if(tab === 'family') {
+                document.querySelector('.nav-btn:nth-child(1)').classList.add('active');
+                document.getElementById('tab-family').classList.add('active');
+            } else {
+                document.querySelector('.nav-btn:nth-child(2)').classList.add('active');
+                document.getElementById('tab-lab').classList.add('active');
+                resetShape();
+            }
+        }
+
+        function setTool(tool) {
+            if(isAnim) return;
+            currentTool = tool;
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+            resetShape();
+        }
+
+        function resetShape() {
+            cancelAnimationFrame(animId);
+            isAnim = false;
+            document.getElementById('animBtn').disabled = false;
+            
+            // 初始位置設定 (留出右側空間給動畫)
+            const cx = 250; 
+            const cy = 350;
+
+            if(currentTool === 'para') {
+                // 0:LB, 1:RB, 2:LT
+                points = [
+                    {x: cx,     y: cy}, 
+                    {x: cx+200, y: cy}, 
+                    {x: cx+50,  y: cy-150} 
+                ];
+                updateFormula("平行四邊形面積 = 底 × 高");
+            } else if(currentTool === 'tri') {
+                points = [
+                    {x: cx,     y: cy},
+                    {x: cx+200, y: cy},
+                    {x: cx+100, y: cy-150}
+                ];
+                updateFormula("三角形面積 = (底 × 高) ÷ 2");
+            } else if(currentTool === 'trap') {
+                // 0:LB, 1:RB, 2:RT, 3:LT
+                points = [
+                    {x: cx,     y: cy},
+                    {x: cx+200, y: cy},
+                    {x: cx+150, y: cy-120},
+                    {x: cx+50,  y: cy-120}
+                ];
+                updateFormula("梯形面積 = (上底 + 下底) × 高 ÷ 2");
+            }
+            draw();
+        }
+
+        function updateFormula(text) {
+            document.getElementById('formula-text').innerText = text;
+        }
+
+        /* =========================================
+           滑鼠拖曳邏輯 (含約束修正)
+           ========================================= */
+        canvas.addEventListener('mousedown', e => {
+            if(isAnim) return;
+            const pos = getPos(e);
+            let minDist = 20;
+            points.forEach((p, i) => {
+                const d = Vec.mag(Vec.sub(p, pos));
+                if(d < minDist) { minDist = d; dragIdx = i; }
+            });
+        });
+
+        canvas.addEventListener('mousemove', e => {
+            const pos = getPos(e);
+            if(dragIdx !== -1) {
+                // 邊界限制
+                pos.x = Math.max(20, Math.min(canvas.width-20, pos.x));
+                pos.y = Math.max(20, Math.min(canvas.height-20, pos.y));
+                
+                if(currentTool === 'trap') handleTrapDrag(dragIdx, pos);
+                else points[dragIdx] = pos;
+                
+                draw();
+            } else {
+                let hover = false;
+                points.forEach(p => { if(Vec.mag(Vec.sub(p, pos)) < 20) hover = true; });
+                canvas.style.cursor = hover ? 'pointer' : 'crosshair';
+            }
+        });
+
+        window.addEventListener('mouseup', () => dragIdx = -1);
+
+        function getPos(e) {
+            const r = canvas.getBoundingClientRect();
+            return {x: e.clientX - r.left, y: e.clientY - r.top};
+        }
+
+        // 梯形約束：保持上底平行於下底，且防止交叉
+        function handleTrapDrag(idx, pos) {
+            // points: 0:LB, 1:RB, 2:RT, 3:LT
+            // 下底向量
+            const baseVec = Vec.sub(points[1], points[0]);
+            const baseDir = Vec.norm(baseVec);
+
+            if(idx === 0 || idx === 1) {
+                // 拖曳下底：自由移動
+                points[idx] = pos;
+                // 讓上底跟著旋轉以保持平行 (選擇保持上底長度不變)
+                const topLen = Vec.mag(Vec.sub(points[2], points[3]));
+                // 重新計算 RT(2) 基於 LT(3)
+                points[2] = Vec.add(points[3], Vec.mul(baseDir, topLen));
+            } 
+            else if(idx === 3) {
+                // 拖曳 LT：自由移動
+                // RT 跟著平移
+                const diff = Vec.sub(pos, points[3]);
+                points[3] = pos;
+                points[2] = Vec.add(points[2], diff);
+            }
+            else if(idx === 2) {
+                // 拖曳 RT：限制在平行軌道上
+                // 線：LT + t * baseDir
+                // 投影 pos 到這條線上
+                const vMouse = Vec.sub(pos, points[3]);
+                let projLen = Vec.dot(vMouse, baseDir);
+                
+                // 防止變成蝴蝶結 (上底長度至少 20px)
+                if(projLen < 20) projLen = 20;
+                
+                points[2] = Vec.add(points[3], Vec.mul(baseDir, projLen));
+            }
+        }
+
+        /* =========================================
+           圖形計算與繪製
+           ========================================= */
+        function getPoly() {
+            if(currentTool === 'para') {
+                // P0(LB), P1(RB), P2(LT) -> 計算 P3(RT)
+                const base = Vec.sub(points[1], points[0]);
+                const pRT = Vec.add(points[2], base);
+                return [points[0], points[1], pRT, points[2]]; // 順序: LB, RB, RT, LT
+            }
+            return points; // Tri, Trap 已經是完整頂點
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const poly = getPoly();
+
+            // 繪製填充
+            ctx.beginPath(); ctx.moveTo(poly[0].x, poly[0].y);
+            for(let i=1; i<poly.length; i++) ctx.lineTo(poly[i].x, poly[i].y);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(67, 56, 202, 0.15)'; // 淡藍色底
+            ctx.fill();
+            ctx.lineWidth = 2; ctx.strokeStyle = '#4338ca';
+            ctx.stroke();
+
+            // 繪製高 (示意)
+            if(!isAnim) {
+                let top = poly[poly.length-1]; // 最後一點通常是左上
+                if(currentTool === 'tri') top = poly[2];
+                const proj = Vec.project(top, poly[0], poly[1]);
+                ctx.setLineDash([5,5]); ctx.strokeStyle = '#ef4444';
+                ctx.beginPath(); ctx.moveTo(top.x, top.y); ctx.lineTo(proj.x, proj.y); ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // 繪製控制點
+            if(!isAnim) {
+                // 平行四邊形畫 3 個點 (因為 RT 是算出來的，不能拖)
+                // 三角形畫 3 個點
+                // 梯形畫 4 個點
+                let drawCount = points.length;
+                if(currentTool === 'para') {
+                     // 0, 1, 2(LT)
+                     drawDot(points[0], '#2563eb');
+                     drawDot(points[1], '#2563eb');
+                     drawDot(points[2], '#0ea5e9'); // Top point
+                } else {
+                     points.forEach((p,i) => drawDot(p, i<2 ? '#2563eb':'#0ea5e9'));
+                }
+
+                // 標示
+                ctx.fillStyle = "#1e3a8a"; ctx.font="bold 16px sans-serif";
+                const mid = Vec.mul(Vec.add(poly[0], poly[1]), 0.5);
+                ctx.fillText("底", mid.x-10, mid.y+25);
+            }
+            return poly;
+        }
+
+        function drawDot(p, color) {
+            ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI*2);
+            ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle='white'; ctx.stroke();
+        }
+
+        /* =========================================
+           動畫引擎
+           ========================================= */
+        function startAnim() {
+            if(isAnim) return;
+            isAnim = true;
+            animProgress = 0;
+            document.getElementById('animBtn').disabled = true;
+            
+            const poly = getPoly(); // 鎖定形狀
+
+            function loop() {
+                animProgress += 0.008; // 速度適中
+                if(animProgress > 1) animProgress = 1;
+                const t = easeInOut(animProgress);
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if(currentTool === 'para') animPara(poly, t);
+                else if(currentTool === 'tri') animTri(poly, t);
+                else if(currentTool === 'trap') animTrap(poly, t);
+
+                if(animProgress < 1) {
+                    animId = requestAnimationFrame(loop);
+                } else {
+                    // 動畫結束
+                    document.getElementById('animBtn').disabled = false;
+                    isAnim = false; 
+                    // 保持最後畫面，不重置，方便觀察
+                }
+            }
+            loop();
+        }
+
+        // --- 平行四邊形動畫 (切割平移) ---
+        function animPara(poly, t) {
+            // poly: [LB, RB, RT, LT]
+            // 1. 算出垂足 H (LT 到底邊的投影)
+            const H = Vec.project(poly[3], poly[0], poly[1]);
+            
+            // 定義 "切割三角形" Triangle = (LB, H, LT)
+            // 定義 "主體" Body = (H, RB, RT, LT)
+            // 注意：如果平行四邊形非常扁 (LT 在 LB 左邊)，數學上 H 會跑去左邊，
+            // 這裡的繪圖順序 [H, RB, RT, LT] 依然構成一個多邊形 (可能非凸)，但 Canvas fill() 能正確處理。
+            
+            // 繪製主體 (不動的部分)
+            drawPolyShape([H, poly[1], poly[2], poly[3]], 'rgba(67, 56, 202, 0.2)', '#4338ca');
+            
+            // 計算平移向量 (底邊長度方向)
+            const moveVec = Vec.mul(Vec.sub(poly[1], poly[0]), t);
+            
+            // 移動的三角形
+            const tri = [poly[0], H, poly[3]];
+            const movedTri = tri.map(p => Vec.add(p, moveVec));
+            
+            // 繪製鬼影 (原位置)
+            if(t > 0.1) drawPolyShape(tri, 'transparent', '#94a3b8', true);
+            
+            // 繪製移動塊 (亮橘色)
+            drawPolyShape(movedTri, 'rgba(234, 88, 12, 0.8)', '#c2410c');
+        }
+
+        // --- 三角形動畫 (旋轉複製) ---
+        function animTri(poly, t) {
+            // poly: [LB, RB, Top]
+            drawPolyShape(poly, 'rgba(67, 56, 202, 0.2)', '#4338ca');
+            
+            // 旋轉中心：右腰中點
+            const M = Vec.mul(Vec.add(poly[1], poly[2]), 0.5);
+            
+            ctx.save();
+            ctx.translate(M.x, M.y);
+            ctx.rotate(Math.PI * t); // 180度
+            ctx.translate(-M.x, -M.y);
+            
+            drawPolyShape(poly, 'rgba(234, 88, 12, 0.8)', '#c2410c');
+            ctx.restore();
+            
+            // 標示旋轉點
+            ctx.beginPath(); ctx.arc(M.x, M.y, 5, 0, Math.PI*2); ctx.fillStyle="#333"; ctx.fill();
+        }
+
+        // --- 梯形動畫 (旋轉複製) ---
+        function animTrap(poly, t) {
+            // poly: [LB, RB, RT, LT]
+            drawPolyShape(poly, 'rgba(67, 56, 202, 0.2)', '#4338ca');
+            
+            // 旋轉中心：右腰中點 (RB, RT)
+            const M = Vec.mul(Vec.add(poly[1], poly[2]), 0.5);
+            
+            ctx.save();
+            ctx.translate(M.x, M.y);
+            ctx.rotate(Math.PI * t);
+            ctx.translate(-M.x, -M.y);
+            
+            drawPolyShape(poly, 'rgba(234, 88, 12, 0.8)', '#c2410c');
+            ctx.restore();
+            
+            ctx.beginPath(); ctx.arc(M.x, M.y, 5, 0, Math.PI*2); ctx.fillStyle="#333"; ctx.fill();
+        }
+
+        function drawPolyShape(pts, fill, stroke, dash=false) {
+            ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+            for(let i=1; i<pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+            ctx.closePath();
+            ctx.fillStyle = fill; ctx.fill();
+            ctx.lineWidth = 2; ctx.strokeStyle = stroke;
+            if(dash) ctx.setLineDash([5,5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function easeInOut(t) { return t<.5 ? 2*t*t : -1+(4-2*t)*t; }
+
+        // 繪製 icon
+        function drawIcons() {
+            const draw = (id, pts, col) => {
+                const c = document.getElementById(id); if(!c)return;
+                const x = c.getContext('2d');
+                x.strokeStyle=col; x.lineWidth=3;
+                x.beginPath(); x.moveTo(pts[0][0], pts[0][1]);
+                for(let i=1; i<pts.length; i++) x.lineTo(pts[i][0], pts[i][1]);
+                x.closePath(); x.stroke();
+            };
+            draw('icon-trap', [[10,50],[90,50],[70,10],[30,10]], '#d97706');
+            draw('icon-rect', [[5,5],[55,5],[55,35],[5,35]], '#2563eb');
+            draw('icon-sq', [[5,5],[45,5],[45,45],[5,45]], '#db2777');
+            draw('icon-rhom', [[30,5],[55,20],[30,35],[5,20]], '#7c3aed');
+        }
+
+    </script>
+</body>
+</html>
