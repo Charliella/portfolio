@@ -7,7 +7,8 @@
     <style>
         /* 引入點陣字體和繁體中文黑體 */
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Serif+TC:wght@900&display=swap');
-/* Cyberpunk Color Palette */
+
+        /* Cyberpunk Color Palette */
         :root {
             --bg-color: #0b0f14;
             --hud-bg: #1e2531;
@@ -36,7 +37,7 @@
             -webkit-user-select: none;
         }
 
-        /* 使用 Flexbox 確保 HUD 在上，Canvas 在下 */
+        /* 🏆 區塊容器：使用 Flexbox 垂直切分畫面 */
         #game-container {
             position: relative;
             width: 100vw;
@@ -44,16 +45,18 @@
             background: var(--bg-color);
             display: flex;
             flex-direction: column; 
-/* 讓內容垂直堆疊 */
+/* 確保內容垂直堆疊 (HUD在上, Canvas在下) */
+            box-sizing: border-box;
         }
 
-        /* 🤖 HUD 介面優化 - 確保不溢出介面 (現在固定在上方) */
+        /* 🎯 區塊一：上層 HUD 介面 (所有數值顯示區) */
         #doom-hud {
             width: 100%;
-            height: 10vh; /* 調降高度比例 */
-            max-height: 90px; /* 硬性最大高度 */
+            height: 10vh; /* 基礎高度比例 */
+            max-height: 90px; /* **硬性最大高度**，確保 HUD 不會過高而壓縮 Canvas */
             background: var(--hud-bg);
-            border-bottom: 3px solid var(--hud-border); /* **將邊框移到底部** */
+            border-bottom: 3px solid var(--hud-border); /* 底部邊界線 */
+            
             /* 橫向掃描線效果 */
             background-image: linear-gradient(rgba(0,0,0,0.5) 1px, transparent 1px);
             background-size: 100% 4px; 
@@ -66,13 +69,13 @@
             padding: 2px 0; 
             box-sizing: border-box;
             flex-shrink: 0; 
-/* 不允許 HUD 被壓縮，保持固定高度 */
+/* **關鍵：不允許 HUD 被壓縮** */
         }
 
-        /* 畫布佔據剩餘空間 (底部區域) */
+        /* 🖼️ 區塊二：下層 Canvas 遊戲區 (候選人漂浮區) */
         canvas {
             display: block;
-            flex-grow: 1; /* 佔據所有可用的垂直空間 */
+            flex-grow: 1; /* **關鍵：填滿所有剩餘的垂直空間** */
             width: 100%;
             cursor: crosshair;
 /* 讓 Canvas 具有細微的發光邊框 */
@@ -80,7 +83,7 @@
         }
         
         /* ---------------------------------------------------- */
-        /* 以下 HUD 內部樣式與輔助螢幕樣式不變，保持緊湊設計 */
+        /* HUD 內部樣式 (確保響應式字體不溢出) */
         /* ---------------------------------------------------- */
 
         .hud-panel {
@@ -90,7 +93,6 @@
             box-shadow: 0 0 6px rgba(0, 255, 255, 0.4), inset 0 0 4px rgba(0, 255, 255, 0.3);
             padding: 1px 1px; 
             flex-grow: 1;
-            /* 讓面板在空間不足時能伸縮 */
             flex-basis: 0;
             height: 95%; 
             display: flex;
@@ -100,7 +102,6 @@
             color: var(--accent-color);
             text-shadow: 1px 1px 0 #000;
             position: relative;
-            /* 傾斜邊角效果 */
             transform: skewX(-5deg);
             margin: 0 1px; 
             min-width: 0;
@@ -111,7 +112,7 @@
 /* 將內容反向傾斜，保持垂直 */
         }
 
-        /* 調整字體大小為響應式，並確保最小尺寸不會過大 */
+        /* 標籤字體：使用 clamp 確保最小尺寸 */
         .hud-label {
             font-size: clamp(6px, 1vw, 10px); 
             color: #aaa;
@@ -121,7 +122,7 @@
             line-height: 1;
         }
 
-        /* 調整字體大小為響應式，並確保最小尺寸不會過大 */
+        /* 數值字體：使用 clamp 確保最小尺寸 */
         .hud-value {
             font-size: clamp(8px, 2.5vw, 16px); 
             font-weight: bold;
@@ -151,7 +152,9 @@
             border-color: var(--hp-color);
         }
 
-        /* 疊加層通用樣式 (使用絕對定位，覆蓋在整個 #game-container 上方) */
+        /* ---------------------------------------------------- */
+        /* 輔助螢幕樣式 (絕對定位，覆蓋在整個 #game-container 上方) */
+        /* ---------------------------------------------------- */
         .overlay-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -195,7 +198,6 @@
             font-size: clamp(10px, 2vw, 14px);
             cursor: pointer;
             margin-top: 15px;
-            /* 科技感按鈕 */
             box-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--accent-color) inset;
             border-radius: 4px;
             transition: transform 0.1s, box-shadow 0.1s, background 0.1s;
@@ -213,26 +215,12 @@
             box-shadow: 0 0 5px var(--accent-color);
         }
 
-        .btn:disabled {
-            background: #555;
-            cursor: not-allowed;
-            color: #aaa;
-            box-shadow: none;
-        }
-
         .level-btns-container, .mode-btns-container, .difficulty-btns-container {
             display: flex;
             flex-direction: column;
             gap: 15px;
             width: 90%;
             max-width: 450px;
-        }
-
-        /* 新增：難度選擇 container */
-        .difficulty-btns-container {
-            margin-top: 20px;
-            border-top: 2px dashed #444;
-            padding-top: 20px;
         }
         
         /* 傷害特效 */
@@ -308,12 +296,14 @@ color: var(--hp-color);">
    
             </div>
         </div>
+        
         <canvas id="gameCanvas"></canvas>
+        
         <div id="damage-overlay"></div>
         
         <div id="start-screen" class="overlay-screen">
             <div class="doom-title">MATH SLASH<br><span style="font-size:0.6em;
-color:#fff;">數學之刃 V2.1</span></div>
+color:#fff;">數學之刃 V2.3</span></div>
             <p style="color:#aaa; font-size:clamp(10px, 1.5vw, 14px); margin-bottom: 20px;
 text-align: center;">
                 COMBINE NODES TO HIT THE TARGET VALUE.
@@ -402,11 +392,11 @@ font-size:clamp(12px, 2vw, 16px);">FINAL SCORE: <span id="final-score">0</span><
 
     <script>
         /**
-         * Math Slash Cyberpunk V2.2
-         * 修正:
-         * 1. 確保 FACTOR 模式的所有候選人 (p1, p2, decoys) 都不大於目標值的一半 (target / 2)。
-         * 2. 增加 FACTOR 模式誘答數字的「誘惑力」，使其更接近正確的因數。
-         * 3. 調整 HTML/CSS 結構，將 HUD 固定在上層，Canvas 填滿下層空間，以解決溢出問題。
+         * Math Slash Cyberpunk V2.3
+         * 最終佈局修正：
+         * 1. 實現 HUD (區塊一) 在上層，固定高度 (max-height: 90px)。
+         * 2. 實現 Canvas (區塊二) 在下層，填滿剩餘高度 (flex-grow: 1)。
+         * 3. 確保 resize 邏輯精確計算 Canvas 區域，以避免任何邊界溢出。
          */
 
         // --- Configuration & Constants ---
@@ -821,7 +811,7 @@ font-size:clamp(12px, 2vw, 16px);">FINAL SCORE: <span id="final-score">0</span><
 
         function updateHpDisplay(hp) {
             state.hp = hp;
-            ui.hp.innerText = state.hp + "%";
+            ui.hp.innerText = hp + "%";
             
             let color = 'var(--hp-color)'; // Default: Green
             if (hp <= 50) color = '#ffaa00';
@@ -1025,8 +1015,7 @@ font-size:clamp(12px, 2vw, 16px);">FINAL SCORE: <span id="final-score">0</span><
             el.innerText = text;
             
             const canvasRect = canvas.getBoundingClientRect();
-            // 注意：這裡使用 canvasRect.top 是因為浮動訊息是相對於整個文檔的
-            // 由於 canvas 已經在 HUD 下方，所以 y 座標會自動加上 HUD 的高度
+            // 由於 canvasRect.top 是相對於視窗的絕對位置，因此直接使用它和 Canvas 內部座標可以正確定位
             el.style.left = (x + canvasRect.left) + 'px';
             el.style.top = (y + canvasRect.top) + 'px'; 
             
@@ -1094,10 +1083,8 @@ font-size:clamp(12px, 2vw, 16px);">FINAL SCORE: <span id="final-score">0</span><
                 const p_max = Math.max(p1, p2);
                 
                 // 2. 確定所有候選人的最大值限制 (target / 2)
-                // 由於 p_min >= 2，p_max 一定 <= target / 2
                 const max_val = Math.floor(target / 2);
                 // 3. 根據目標大小動態調整誘答範圍 (proximity_range)
-                // 困難模式下目標大，範圍可以寬一點，普通模式目標小，範圍窄一點。
                 const proximity_range = Math.max(5, Math.floor(Math.sqrt(target) / 3));
                 const required_decoys_count = baseCount - 2;
 
@@ -1109,8 +1096,8 @@ font-size:clamp(12px, 2vw, 16px);">FINAL SCORE: <span id="final-score">0</span><
                     if (rng < 0.35) {
                         // 35% chance: 誘答數字接近 p_max (較大的因數)
                         const min_d = Math.max(2, p_max - proximity_range);
-                        // 最大值不可超過 max_val (target/2)，也不能超過 p_max + range
-                        const max_d = Math.min(max_val, p_max + proximity_range);
+                        // 最大值不可超過 max_val (target/2)
+                        const max_d = Math.min(max_val, p_max + proximity_range); 
                         if (min_d >= max_d) { decoy = min_d; } 
                         else { decoy = Math.floor(Math.random() * (max_d - min_d + 1)) + min_d;
                         }
@@ -1172,7 +1159,7 @@ font-size:clamp(12px, 2vw, 16px);">FINAL SCORE: <span id="final-score">0</span><
                     }
                 }
                 
-                const displayText = `${n1} ? ? = ${res}`; // 修正顯示錯誤
+                const displayText = `${n1} ? ? = ${res}`; 
                 
                 const solutionOp = op;
                 const solutionNum = n2;
