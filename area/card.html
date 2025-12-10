@@ -50,7 +50,24 @@
 
         /* 按鈕樣式 (從 card.html 繼承) */
         button { padding: 12px 24px; font-size: 16px; background-color: #00ff00; color: white; border: 2px solid #00ff00; border-radius: 10px; cursor: pointer; box-shadow: 0 0 8px #00ff00, 0 0 16px #00ff00; transition: all 0.3s ease; width: 100%; }
-        button:hover { background-color: #00cc00; box-shadow: 0 0 12px #00ff00, 0 0 20px #00ff00; }
+        
+        /* 啟用狀態的抽卡按鈕 */
+        .draw-button:not(:disabled) {
+            background-color: #00ff00;
+            border-color: #00ff00;
+            box-shadow: 0 0 8px #00ff00, 0 0 16px #00ff00;
+        }
+        .draw-button:not(:disabled):hover { background-color: #00cc00; box-shadow: 0 0 12px #00ff00, 0 0 20px #00ff00; }
+
+        /* 禁用狀態的抽卡按鈕 (圖片預載中) */
+        .draw-button:disabled {
+            background-color: #333;
+            border-color: #555;
+            color: #aaa;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
         .clear-button { background-color: #ff0000; border-color: #ff0000; box-shadow: 0 0 8px #ff0000, 0 0 16px #ff0000; }
         .clear-button:hover { background-color: #cc0000; box-shadow: 0 0 12px #ff0000, 0 0 20px #ff0000; }
         .copy-button { background-color: #007bff; border-color: #007bff; box-shadow: 0 0 8px #007bff, 0 0 16px #007bff; }
@@ -133,7 +150,7 @@
         <h2>請登入</h2>
         <input type="email" id="auth-email" placeholder="Email (帳號)" required>
         <input type="password" id="auth-password" placeholder="密碼 (Access Code)" required>
-        <button onclick="login()"><i class="fa-solid fa-lock-open"></i> 登入</button>
+        <button id="loginButton" onclick="login()"><i class="fa-solid fa-lock-open"></i> 登入</button>
         <div id="auth-error"></div>
     </div>
 
@@ -142,7 +159,9 @@
             <div class="draw-controls">
                 <label for="student-id">抽選者座號 (1-30):</label>
                 <input type="number" id="student-id" min="1" max="30" value="1">
-                <button onclick="drawCard()"><i class="fa-solid fa-dice"></i> Draw a Card</button>
+                <button id="drawButton" class="draw-button" onclick="drawCard()" disabled>
+                    <i class="fa-solid fa-hourglass-start"></i> 圖片預載中...
+                </button>
                 <button class="clear-button" onclick="clearDrawLog()"><i class="fa-solid fa-broom"></i> 清除抽選記錄</button>
                 <button class="copy-button" onclick="copyDrawLogToClipboard()"><i class="fa-solid fa-copy"></i> 一鍵複製抽選記錄</button>
                 <button class="csv-button" onclick="exportToCSV()"><i class="fa-solid fa-file-csv"></i> 匯出 CSV 結果表</button>
@@ -190,8 +209,104 @@
         const authError = document.getElementById('auth-error');
         const authEmail = document.getElementById('auth-email');
         const authPassword = document.getElementById('auth-password');
+        const drawButton = document.getElementById('drawButton'); // 新增抽卡按鈕 DOM
+
+        // 圖片預載狀態變數
+        let areImagesPreloaded = false;
+
+        // ===================================
+        // 圖片預載邏輯 (在登入前執行)
+        // ===================================
+
+        const cardPool = [
+            { name: "10 號R卡", image: "10.png", probability: 25.9, level: "R級普卡" },
+            { name: "11 號R卡", image: "11.png", probability: 25.9, level: "R級普卡" },
+            { name: "12 號R卡", image: "12.png", probability: 26, level: "R級普卡" },
+            { name: "7  號SR卡", image: "7.png", probability: 6, level: "SR級銀卡" },
+            { name: "8  號SR卡", image: "8.png", probability: 6, level: "SR級銀卡" },
+            { name: "9  號SR卡", image: "9.png", probability: 6, level: "SR級銀卡" },
+            { name: "4  號SSR卡", image: "4.png", probability: 1.2, level: "SSR級金卡" },
+            { name: "5  號SSR卡", image: "5.png", probability: 1.2, level: "SSR級金卡" },
+            { name: "6  號SSR卡", image: "6.png", probability: 1.2, level: "SSR級金卡" },
+            { name: "1  號UR卡", image: "1.png", probability: 0.2, level: "UR級鑽卡" },
+            { name: "2  號UR卡", image: "2.png", probability: 0.2, level: "UR級鑽卡" },
+            { name: "3  號UR卡", image: "3.png", probability: 0.2, level: "UR級鑽卡" }
+        ];
+
+        // 取得所有圖片的路徑 (使用正確的相對路徑 '../image/X.png')
+        const imagePaths = cardPool.map(card => `../image/${card.image}`);
         
-        // 將登入/登出函數掛載到 window，以便 HTML 中的 onclick 能夠呼叫
+        let loadedCount = 0;
+        const totalImages = imagePaths.length;
+
+        /**
+         * @brief 處理圖片預載完成的函數
+         */
+        function onPreloadComplete() {
+            areImagesPreloaded = true;
+            console.log("所有圖片預載完成！");
+            
+            // 如果用戶已經登入，則立即啟用抽卡按鈕
+            if (auth.currentUser) {
+                enableDrawButton();
+            } else {
+                // 即使登入畫面，也要更新按鈕文字讓使用者知道載入完成了
+                if (drawButton) {
+                    drawButton.textContent = '圖片已備妥 (12/12)';
+                }
+            }
+        }
+
+        /**
+         * @brief 啟用抽卡按鈕並更新文字
+         */
+        function enableDrawButton() {
+            drawButton.disabled = false;
+            drawButton.innerHTML = '<i class="fa-solid fa-dice"></i> Draw a Card';
+        }
+
+        /**
+         * @brief 圖片預載函數
+         */
+        function preloadImages(paths) {
+            if (paths.length === 0) {
+                onPreloadComplete();
+                return;
+            }
+            
+            paths.forEach(path => {
+                const img = new Image();
+                
+                const handleLoad = function() {
+                    loadedCount++;
+                    // 無論登入與否，我們都可以更新按鈕進度 (雖然在登入前按鈕是隱藏的，但文字可以先更新)
+                    drawButton.innerHTML = `<i class="fa-solid fa-hourglass-start"></i> 圖片預載中... (${loadedCount}/${totalImages})`;
+                    
+                    if (loadedCount === totalImages) {
+                        onPreloadComplete();
+                    }
+                };
+                
+                img.onload = handleLoad;
+                img.onerror = handleLoad; 
+
+                // 開始載入圖片
+                img.src = path; 
+            });
+        }
+        
+        // ===================================
+        // 程式進入點：頁面載入完成時，立即開始預載
+        // ===================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // 立即開始預載所有卡片圖片
+            preloadImages(imagePaths);
+        });
+
+        // ===================================
+        // Firebase 登入/抽卡邏輯 (修正)
+        // ===================================
+        
         window.login = async function() {
             const email = authEmail.value;
             const password = authPassword.value;
@@ -213,30 +328,6 @@
             }
         }
         
-        // 註冊功能 (如果需要的話)
-        window.register = async function() {
-            const email = authEmail.value;
-            const password = authPassword.value;
-            authError.textContent = ''; 
-
-            if (!email || !password) {
-                authError.textContent = "請輸入 Email 和密碼。";
-                return;
-            }
-            if (password.length < 6) {
-                authError.textContent = "密碼長度需至少為 6 位數。";
-                return;
-            }
-
-            try {
-                await createUserWithEmailAndPassword(auth, email, password);
-                alert("註冊成功！帳號: " + auth.currentUser.email + "。您現在已自動登入。");
-            } catch (error) {
-                authError.textContent = "註冊失敗：" + translateAuthError(error.code);
-                console.error("註冊錯誤:", error.code, error.message);
-            }
-        }
-
         window.logout = async function() {
             try {
                 await signOut(auth);
@@ -253,7 +344,16 @@
                 loginContainer.style.display = 'none';
                 mainApp.style.display = 'flex'; 
                 document.title = "世界人物課抽卡系統 - 基礎卡池";
-                // 登入成功後才初始化抽卡相關資訊
+                
+                // 登入成功後，檢查圖片是否載入完成，決定是否啟用抽卡按鈕
+                if (areImagesPreloaded) {
+                    enableDrawButton();
+                } else {
+                    // 如果圖片還在載入，則保持按鈕禁用狀態 (會顯示載入進度)
+                    drawButton.disabled = true;
+                }
+
+                // 初始化抽卡相關資訊
                 displayProbabilities();
                 updateDrawLogDisplay();
             } else {
@@ -261,13 +361,23 @@
                 loginContainer.style.display = 'block';
                 mainApp.style.display = 'none';
                 document.title = "世界人物課抽卡系統 - 登入認證";
-                // 清空密碼，確保下次登入需要重新輸入
                 authPassword.value = '';
                 authError.textContent = '';
+                
+                // 登出後，將抽卡按鈕重設為禁用狀態並顯示載入中/已備妥
+                if (drawButton) {
+                    drawButton.disabled = true;
+                    // 根據預載狀態，顯示不同的提示
+                    if (areImagesPreloaded) {
+                        drawButton.textContent = '圖片已備妥 (12/12)';
+                    } else {
+                        drawButton.innerHTML = `<i class="fa-solid fa-hourglass-start"></i> 圖片預載中... (${loadedCount}/${totalImages})`;
+                    }
+                }
             }
         });
 
-        // 錯誤碼翻譯
+        // 錯誤碼翻譯 (不變)
         function translateAuthError(code) {
             switch (code) {
                 case 'auth/invalid-email': return 'Email 格式不正確。';
@@ -282,27 +392,15 @@
         }
         
         // ===================================
-        // 【原有的抽卡相關函數 (掛載到 window)】
+        // 【原有的抽卡相關函數 (修正圖片路徑)】
         // ===================================
 
-        const cardPool = [
-            { name: "10 號R卡", image: "../image/10.png", probability: 25.9, level: "R級普卡" },
-            { name: "11 號R卡", image: "../image/11.png", probability: 25.9, level: "R級普卡" },
-            { name: "12 號R卡", image: "../image/12.png", probability: 26, level: "R級普卡" },
-            { name: "7  號SR卡", image: "../image/7.png", probability: 6, level: "SR級銀卡" },
-            { name: "8  號SR卡", image: "../image/8.png", probability: 6, level: "SR級銀卡" },
-            { name: "9  號SR卡", image: "../image/9.png", probability: 6, level: "SR級銀卡" },
-            { name: "4  號SSR卡", image: "../image/4.png", probability: 1.2, level: "SSR級金卡" },
-            { name: "5  號SSR卡", image: "../image/5.png", probability: 1.2, level: "SSR級金卡" },
-            { name: "6  號SSR卡", image: "../image/6.png", probability: 1.2, level: "SSR級金卡" },
-            { name: "1  號UR卡", image: "../image/1.png", probability: 0.2, level: "UR級鑽卡" },
-            { name: "2  號UR卡", image: "../image/2.png", probability: 0.2, level: "UR級鑽卡" },
-            { name: "3  號UR卡", image: "../image/3.png", probability: 0.2, level: "UR級鑽卡" }
-        ];
-
+        // 抽卡卡池定義不變 (但圖片路徑會在 drawCard 函數中加上相對路徑)
+        
         let drawLog = JSON.parse(localStorage.getItem('drawLog')) || [];
 
         window.displayProbabilities = function() {
+            // 邏輯不變
             const probabilityDisplay = document.getElementById('probability-display');
             probabilityDisplay.innerHTML = '<h2>Card Probability Levels</h2>';
             const levels = {};
@@ -318,6 +416,7 @@
         }
 
         window.updateDrawLogDisplay = function() {
+            // 邏輯不變
             const drawLogDisplay = document.getElementById('draw-log');
             drawLogDisplay.innerHTML = '<h2>抽選記錄</h2>';
             for (let i = drawLog.length - 1; i >= 0; i--) { 
@@ -331,6 +430,9 @@
                 alert("請先登入才能進行抽選！");
                 return;
             }
+            // 由於 drawButton 只有在圖片載入完成後才會被啟用，
+            // 這裡不需要額外檢查 areImagesPreloaded
+
             const studentIdInput = document.getElementById('student-id');
             const studentId = parseInt(studentIdInput.value);
 
@@ -358,7 +460,8 @@
                 void cardImage.offsetWidth; 
                 cardImage.classList.add('card-animate');
 
-                cardImage.src = drawnCard.image;
+                // 修正：這裡加上相對路徑前綴 '../image/'
+                cardImage.src = `../image/${drawnCard.image}`;
                 cardImage.style.display = 'block';
                 cardImage.alt = drawnCard.name;
 
@@ -369,7 +472,7 @@
                     cardName: drawnCard.name,
                     cardLevel: drawnCard.level,
                     time: timeString,
-                    operator: auth.currentUser.email // 記錄操作者
+                    operator: auth.currentUser.email 
                 });
 
                 localStorage.setItem('drawLog', JSON.stringify(drawLog));
@@ -378,6 +481,7 @@
         }
 
         window.clearDrawLog = function() {
+            // 邏輯不變
             if (!auth.currentUser) {
                 alert("請先登入才能執行此操作！");
                 return;
@@ -399,6 +503,7 @@
         }
 
         window.copyDrawLogToClipboard = function() {
+            // 邏輯不變
             if (!auth.currentUser) {
                 alert("請先登入才能執行此操作！");
                 return;
@@ -424,6 +529,7 @@
         }
 
         window.exportToCSV = function() {
+            // 邏輯不變
             if (!auth.currentUser) {
                 alert("請先登入才能執行此操作！");
                 return;
@@ -433,7 +539,6 @@
                 return;
             }
 
-            // ... (CSV 匯出邏輯不變)
             const orderedCardNames = [
                 "12 號R卡", "11 號R卡", "10 號R卡",
                 "9  號SR卡", "8  號SR卡", "7  號SR卡",
@@ -480,7 +585,7 @@
             link.click();
             document.body.removeChild(link);
         }
-
+        
     </script>
 </body>
 </html>
