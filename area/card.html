@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>世界人物課抽卡系統</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 8px #ff00ff, 0 0 16px #00ffff;
+        }
+        .main-layout {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            width: 95%;
+            max-width: 1400px;
+            margin-top: 20px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 10px;
+            box-sizing: border-box;
+            flex: 1;
+            min-width: 300px;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+
+        .column-1 {
+            flex: 0 0 25%;
+            min-width: 250px;
+            max-width: 350px;
+        }
+        .column-2 {
+            flex: 0 0 35%;
+            min-width: 380px;
+            max-width: 420px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .column-3 {
+            flex: 1;
+            min-width: 300px;
+            max-width: 500px;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: #00ff00;
+            color: white;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 0 8px #00ff00, 0 0 16px #00ff00;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #00cc00;
+            box-shadow: 0 0 12px #00ff00, 0 0 20px #00ff00;
+        }
+        .clear-button {
+            background-color: #ff0000;
+            border-color: #ff0000;
+            box-shadow: 0 0 8px #ff0000, 0 0 16px #ff0000;
+        }
+        .clear-button:hover {
+            background-color: #cc0000;
+            box-shadow: 0 0 12px #ff0000, 0 0 20px #ff0000;
+        }
+        .copy-button {
+            background-color: #007bff;
+            border-color: #007bff;
+            box-shadow: 0 0 8px #007bff, 0 0 16px #007bff;
+        }
+        .copy-button:hover {
+            background-color: #0056b3;
+            box-shadow: 0 0 12px #007bff, 0 0 20px #007bff;
+        }
+        .csv-button {
+            background-color: #9b4dca;
+            border-color: #9b4dca;
+            box-shadow: 0 0 8px #9b4dca, 0 0 16px #9b4dca;
+        }
+        .csv-button:hover {
+            background-color: #6f2c91;
+            box-shadow: 0 0 12px #9b4dca, 0 0 20px #9b4dca;
+        }
+
+        #card-container {
+            width: 400px;
+            height: 600px;
+            border: 4px solid #ff00ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            background-color: #222;
+            border-radius: 12px;
+            box-shadow: 0 0 15px #ff00ff, 0 0 25px #ff00ff;
+            flex-shrink: 0;
+            flex-grow: 0;
+        }
+        #card-container img {
+            width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+        .card-animate {
+            animation: draw-animation 1s ease-out forwards, glow-animation 1s infinite alternate;
+        }
+        @keyframes draw-animation {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes glow-animation {
+            0% { filter: brightness(1); }
+            100% { filter: brightness(1.5); }
+        }
+
+        #probability-display, #draw-log {
+            font-size: 16px;
+            color: #ffcc00;
+            background-color: #222;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 0 10px rgba(0,255,255,0.3);
+            width: 100%;
+        }
+        #probability-display h2, #draw-log h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #ff00ff;
+        }
+        #probability-display p {
+            color: #ffff00;
+            margin: 5px 0;
+        }
+        #draw-log p {
+            color: #00ffff;
+            margin: 5px 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.1);
+            padding-bottom: 5px;
+            word-break: break-all;
+        }
+        #draw-log p:last-child {
+            border-bottom: none;
+        }
+        .draw-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+        .draw-controls label {
+            margin-bottom: 5px;
+            font-size: 18px;
+            color: #00ffff;
+        }
+        .draw-controls input[type="number"] {
+            padding: 8px;
+            font-size: 16px;
+            width: 80px;
+            text-align: center;
+            border: 2px solid #00ffff;
+            background-color: #333;
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 0 5px #00ffff;
+        }
+
+        @media (max-width: 1200px) {
+            .main-layout {
+                flex-direction: column;
+                align-items: center;
+            }
+            .column {
+                flex: 0 0 90%;
+                min-width: unset;
+                max-width: 600px;
+            }
+            .column-1, .column-2, .column-3 {
+                flex: 0 0 100%;
+                min-width: unset;
+                max-width: 600px;
+            }
+            #card-container {
+                width: 90%;
+                height: 500px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 28px;
+            }
+            button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+            #card-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>基礎卡池</h1>
+    <div class="main-layout">
+        <!-- 第一直欄位：按鈕、座號欄位、機率顯示 -->
+        <div class="column column-1">
+            <div class="draw-controls">
+                <label for="student-id">抽選者座號 (1-30):</label>
+                <input type="number" id="student-id" min="1" max="30" value="1">
+                <button onclick="drawCard()">Draw a Card</button>
+                <button class="clear-button" onclick="clearDrawLog()">清除抽選記錄</button>
+                <button class="copy-button" onclick="copyDrawLogToClipboard()">一鍵複製抽選記錄</button>
+                <button class="csv-button" onclick="exportToCSV()">匯出 CSV 結果表</button>
+            </div>
+            <div id="probability-display">
+                <h2>Card Probability Levels</h2>
+                <!--機率顯示區域會在這裡動態更新-->
+            </div>
+        </div>
+
+        <!-- 第二直欄位：抽到的卡片 -->
+        <div class="column column-2">
+            <div id="card-container">
+                <img id="card-image" src="" alt="Drawn card">
+            </div>
+        </div>
+
+        <!-- 第三直欄位：抽卡記錄 -->
+        <div class="column column-3">
+            <div id="draw-log">
+                <h2>抽選記錄</h2>
+                <!--抽選記錄會在這裡動態更新-->
+            </div>
+        </div>
+    </div>
+    <script>
+        const cardPool = [
+            { name: "10 號R卡", image: "10.png", probability: 25.9, level: "R級普卡" },
+            { name: "11 號R卡", image: "11.png", probability: 25.9, level: "R級普卡" },
+            { name: "12 號R卡", image: "12.png", probability: 26, level: "R級普卡" },
+            { name: "7  號SR卡", image: "7.png", probability: 6, level: "SR級銀卡" },
+            { name: "8  號SR卡", image: "8.png", probability: 6, level: "SR級銀卡" },
+            { name: "9  號SR卡", image: "9.png", probability: 6, level: "SR級銀卡" },
+            { name: "4  號SSR卡", image: "4.png", probability: 1.2, level: "SSR級金卡" },
+            { name: "5  號SSR卡", image: "5.png", probability: 1.2, level: "SSR級金卡" },
+            { name: "6  號SSR卡", image: "6.png", probability: 1.2, level: "SSR級金卡" },
+            { name: "1  號UR卡", image: "1.png", probability: 0.2, level: "UR級鑽卡" },
+            { name: "2  號UR卡", image: "2.png", probability: 0.2, level: "UR級鑽卡" },
+            { name: "3  號UR卡", image: "3.png", probability: 0.2, level: "UR級鑽卡" }
+        ];
+
+        let drawLog = JSON.parse(localStorage.getItem('drawLog')) || [];
+
+        function displayProbabilities() {
+            const probabilityDisplay = document.getElementById('probability-display');
+            probabilityDisplay.innerHTML = '<h2>Card Probability Levels</h2>';
+            const levels = {};
+            cardPool.forEach(card => {
+                if (!levels[card.level]) {
+                    levels[card.level] = 0;
+                }
+                levels[card.level] += card.probability;
+            });
+            for (const level in levels) {
+                probabilityDisplay.innerHTML += `<p>${level}: ${levels[level].toFixed(2)}%</p>`;
+            }
+        }
+
+        function updateDrawLogDisplay() {
+            const drawLogDisplay = document.getElementById('draw-log');
+            drawLogDisplay.innerHTML = '<h2>抽選記錄</h2>';
+            for (let i = drawLog.length - 1; i >= 0; i--) { 
+                const log = drawLog[i];
+                drawLogDisplay.innerHTML += `<p>座號 ${log.studentId} 抽到: ${log.cardName} (${log.cardLevel}) - ${log.time}</p>`;
+            }
+        }
+
+        function drawCard() {
+            const studentIdInput = document.getElementById('student-id');
+            const studentId = parseInt(studentIdInput.value);
+
+            if (isNaN(studentId) || studentId < 1 || studentId > 30) {
+                alert("請輸入有效的座號 (1-30)。");
+                return;
+            }
+
+            const random = Math.random() * 100;
+            let cumulativeProbability = 0;
+            let drawnCard = null;
+
+            for (const card of cardPool) {
+                cumulativeProbability += card.probability;
+                if (random < cumulativeProbability) {
+                    drawnCard = card;
+                    break;
+                }
+            }
+
+            if (drawnCard) {
+                const cardImage = document.getElementById('card-image');
+                
+                cardImage.classList.remove('card-animate');
+                void cardImage.offsetWidth; 
+                cardImage.classList.add('card-animate');
+
+                cardImage.src = drawnCard.image;
+                cardImage.style.display = 'block';
+                cardImage.alt = drawnCard.name;
+
+                const now = new Date();
+                const timeString = now.toLocaleTimeString(); 
+                drawLog.push({
+                    studentId: studentId,
+                    cardName: drawnCard.name,
+                    cardLevel: drawnCard.level,
+                    time: timeString
+                });
+
+                localStorage.setItem('drawLog', JSON.stringify(drawLog));
+                updateDrawLogDisplay();
+            }
+        }
+
+        function clearDrawLog() {
+            if (confirm("確定要清除所有抽選記錄嗎？此操作無法復原。")) {
+                drawLog = []; 
+                localStorage.removeItem('drawLog'); 
+                updateDrawLogDisplay(); 
+
+                const cardImage = document.getElementById('card-image');
+                cardImage.style.display = 'none';
+                cardImage.src = ''; 
+                cardImage.alt = 'Drawn card';
+                
+                cardImage.classList.remove('card-animate'); 
+                
+                alert("抽選記錄已清除。");
+            }
+        }
+
+        function copyDrawLogToClipboard() {
+            if (drawLog.length === 0) {
+                alert("目前沒有抽選記錄可以複製。");
+                return;
+            }
+
+            let logText = "世界人物課抽卡記錄:\n";
+            drawLog.forEach(log => {
+                logText += `座號 ${log.studentId} 抽到: ${log.cardName} (${log.cardLevel}) - ${log.time}\n`;
+            });
+
+            navigator.clipboard.writeText(logText)
+                .then(() => {
+                    alert("抽選記錄已複製到剪貼簿！");
+                })
+                .catch(err => {
+                    console.error('複製失敗:', err);
+                    alert("複製失敗，請檢查瀏覽器權限或手動複製。");
+                });
+        }
+
+        // 新增與修改：匯出 CSV 的功能 (行列交換)
+        function exportToCSV() {
+            if (drawLog.length === 0) {
+                alert("目前沒有記錄可供匯出！");
+                return;
+            }
+
+            // 1. 定義卡片顯示順序 (這將會是橫列標題，由 12 到 1)
+            const orderedCardNames = [
+                "12 號R卡", "11 號R卡", "10 號R卡",
+                "9  號SR卡", "8  號SR卡", "7  號SR卡",
+                "6  號SSR卡", "5  號SSR卡", "4  號SSR卡",
+                "3  號UR卡", "2  號UR卡", "1  號UR卡"
+            ];
+
+            // 2. 初始化數據矩陣 [StudentId][CardName]
+            // 這樣我們可以快速透過「座號」找到他的所有「卡片計數」
+            let studentStats = {};
+            for (let i = 1; i <= 30; i++) {
+                studentStats[i] = {};
+                orderedCardNames.forEach(cardName => {
+                    studentStats[i][cardName] = 0; // 預設數量為 0
+                });
+            }
+
+            // 3. 填入數據
+            drawLog.forEach(log => {
+                const name = log.cardName;
+                const id = log.studentId;
+                // 確保數據有效
+                if (studentStats[id] && studentStats[id][name] !== undefined) {
+                    studentStats[id][name]++;
+                }
+            });
+
+            // 4. 構建 CSV 字串
+            // 加入 BOM (\uFEFF) 讓 Excel 能正確識別中文
+            let csvContent = "\uFEFF";
+            
+            // 表頭 (橫列)：座號, 12號卡, 11號卡... 1號卡
+            csvContent += "座號," + orderedCardNames.join(",") + "\n";
+
+            // 表內容 (直行)：1 到 30 號
+            for (let i = 1; i <= 30; i++) {
+                let row = i + ","; // 該行第一格是座號
+                
+                // 依序取出該座號的各張卡片數量
+                let counts = orderedCardNames.map(cardName => studentStats[i][cardName]);
+                
+                row += counts.join(",");
+                csvContent += row + "\n";
+            }
+
+            // 5. 觸發下載
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            
+            const now = new Date();
+            const dateStr = `${now.getMonth()+1}月${now.getDate()}日_${now.getHours()}點${now.getMinutes()}分`;
+            link.setAttribute("download", `抽卡結果統計(座號表)_${dateStr}.csv`);
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 頁面載入時初始化
+        displayProbabilities();
+        updateDrawLogDisplay(); 
+    </script>
+</body>
+</html>
