@@ -425,7 +425,7 @@
             CANDIDATE_BASE_SIZE: 50,
             PARRY_NEEDED: 3, // 預設值，每關需要完成 3 次配對
             FINAL_STAGE: 6, 
-            SWIPE_TIMEOUT_MS: 20000,
+            SWIPE_TIMEOUT_MS: 5000,
             TRAIL_LENGTH: 15,
             COLORS: {
                 bg: '#0b0f14',
@@ -619,7 +619,7 @@
                 }
 
                 // Random velocity (scaled)
-                const speed = (0.5 + Math.random() * 1.0) * state.scaleFactor;
+                const speed = (1.5 + Math.random() * 1.0) * state.scaleFactor;
                 const angle = Math.random() * Math.PI * 2;
                 this.vx = Math.cos(angle) * speed;
                 this.vy = Math.sin(angle) * speed;
@@ -1330,3 +1330,4 @@
     </script>
 </body>
 </html>
+
