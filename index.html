@@ -35,7 +35,6 @@
             position: relative;
         }
 
-        /* --- 背景流體特效 --- */
         .ambient-light {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -64,24 +63,20 @@
             max-width: 1280px;
             width: 100%;
             z-index: 1;
-            transition: transform 0.3s;
         }
 
         header {
             text-align: center;
             margin-bottom: 50px;
-            position: relative;
         }
 
         h1 {
             font-size: 3.5rem;
             font-weight: 800;
-            letter-spacing: -1px;
             background: linear-gradient(135deg, #fff 0%, #ccc 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
-            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
         }
 
         .version-badge {
@@ -91,8 +86,6 @@
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.2);
             font-size: 0.9rem;
-            font-weight: 500;
-            backdrop-filter: blur(10px);
             color: rgba(255,255,255,0.9);
             margin-bottom: 20px;
         }
@@ -117,15 +110,12 @@
             font-size: 1.5rem;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            position: relative;
-            overflow: hidden;
         }
 
         .mini-btn:hover {
             transform: translateY(-5px) scale(1.1);
             background: rgba(255, 255, 255, 0.15);
             border-color: rgba(255, 255, 255, 0.5);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
 
         .grid-box {
@@ -146,34 +136,16 @@
             flex-direction: column;
             justify-content: space-between;
             backdrop-filter: blur(var(--blur-amount)) saturate(180%);
-            -webkit-backdrop-filter: blur(var(--blur-amount)) saturate(180%);
             border: 1px solid var(--glass-border);
-            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(255,255,255,0.02);
             transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
             overflow: hidden;
-        }
-
-        .widget::after {
-            content: "";
-            position: absolute;
-            top: 0; left: -100%;
-            width: 50%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            transform: skewX(-25deg);
-            transition: 0s;
-            pointer-events: none;
-        }
-
-        .widget:hover::after {
-            left: 200%;
-            transition: 0.7s ease-in-out;
         }
 
         .widget.active:hover {
             transform: translateY(-10px) scale(1.03);
             background: rgba(255, 255, 255, 0.08);
             border-color: var(--glass-highlight);
-            box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.1);
+            box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.4);
         }
 
         .widget.blue-mode .status-light { background: var(--cyan); box-shadow: 0 0 15px var(--cyan); }
@@ -181,32 +153,23 @@
         .widget.yellow-mode .status-light { background: var(--yellow); box-shadow: 0 0 15px var(--yellow); }
 
         .top-row { display: flex; justify-content: space-between; align-items: flex-start; }
-        
-        .icon {
-            font-size: 2.5rem;
-            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
-        }
-
+        .icon { font-size: 2.5rem; transition: transform 0.5s; }
         .widget:hover .icon { transform: scale(1.2) rotate(-5deg); }
-
-        .status-light { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.3); }
+        .status-light { width: 6px; height: 6px; border-radius: 50%; }
+        
         .widget-subtitle { font-size: 0.75rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 6px; }
-        .widget-title { font-size: 1.4rem; font-weight: 700; line-height: 1.2; background: linear-gradient(to bottom, #fff, #eee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .widget-title { font-size: 1.4rem; font-weight: 700; background: linear-gradient(to bottom, #fff, #eee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        .widget.disabled { background: rgba(20, 20, 20, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); cursor: default; opacity: 0.6; }
-        .widget.disabled .icon { filter: grayscale(100%); opacity: 0.3; }
-
-        /* 全域特效動畫 */
+        /* 特效相關 Class */
         .flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; pointer-events: none; opacity: 0; z-index: 9999; }
         body.mode-neon .flash-overlay { animation: flash-anim 0.8s ease-out; }
         @keyframes flash-anim { 0% { opacity: 0.8; } 100% { opacity: 0; } }
-        body.mode-jelly .container { animation: jelly-all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
-        @keyframes jelly-all { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.05, 0.95); } 50% { transform: scale(1.02, 0.98); } }
-        body.mode-glitch .container { animation: glitch-shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes glitch-shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
-        body.mode-spin .container { animation: container-spin 1s ease-in-out; }
-        @keyframes container-spin { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(0.2); } 100% { transform: rotate(360deg) scale(1); } }
+        body.mode-jelly .container { animation: jelly-all 0.8s; }
+        @keyframes jelly-all { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.05, 0.95); } }
+        body.mode-glitch .container { animation: glitch-shake 0.4s; }
+        @keyframes glitch-shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
+        body.mode-spin .container { animation: container-spin 1s; }
+        @keyframes container-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         @media (max-width: 600px) {
             h1 { font-size: 2.5rem; }
@@ -228,10 +191,10 @@
             <h1>TEACHING HUB</h1>
             <div class="version-badge">✨ Designed by 嘉威老師</div>
             <div class="control-bar">
-                <div class="mini-btn" onclick="triggerGlobal('neon')" title="Neon Surge">⚡</div>
-                <div class="mini-btn" onclick="triggerGlobal('jelly')" title="Jelly Bounce">💧</div>
-                <div class="mini-btn" onclick="triggerGlobal('glitch')" title="System Glitch">👾</div>
-                <div class="mini-btn" onclick="triggerGlobal('spin')" title="Hyper Spin">🌀</div>
+                <div class="mini-btn" onclick="triggerGlobal('neon')">⚡</div>
+                <div class="mini-btn" onclick="triggerGlobal('jelly')">💧</div>
+                <div class="mini-btn" onclick="triggerGlobal('glitch')">👾</div>
+                <div class="mini-btn" onclick="triggerGlobal('spin')">🌀</div>
             </div>
         </header>
         
@@ -280,16 +243,18 @@
                 <div class="top-row"><div class="icon">🃏</div><div class="status-light"></div></div>
                 <div class="text-content"><div class="widget-subtitle">GAME ZONE</div><div class="widget-title">抽卡系統</div></div>
             </a>
-
             <a href="area/table.html" class="widget active blue-mode">
                 <div class="top-row"><div class="icon">📈</div><div class="status-light"></div></div>
                 <div class="text-content"><div class="widget-subtitle">DATA ANALYTICS</div><div class="widget-title">卡片統計</div></div>
             </a>
 
-            <div class="widget disabled">
-                <div class="top-row"><div class="icon">🔒</div><div class="status-light" style="background: #444; box-shadow: none;"></div></div>
-                <div class="text-content"><div class="widget-subtitle">LOCKED</div><div class="widget-title">即將推出</div></div>
-            </div>
+            <a href="area/avataredit.html" class="widget active pink-mode">
+                <div class="top-row"><div class="icon">👤</div><div class="status-light"></div></div>
+                <div class="text-content">
+                    <div class="widget-subtitle">AVATAR</div>
+                    <div class="widget-title">虛擬化身</div>
+                </div>
+            </a>
         </div>
     </div>
 
@@ -302,11 +267,10 @@
                 void body.offsetWidth;
             }
             body.classList.add(modeClass);
-            let duration = 800;
-            if (effect === 'glitch') duration = 400;
-            if (effect === 'spin') duration = 1000;
+            let duration = effect === 'glitch' ? 400 : effect === 'spin' ? 1000 : 800;
             setTimeout(() => { body.classList.remove(modeClass); }, duration);
         }
     </script>
+
 </body>
 </html>
