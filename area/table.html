@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>世界人物課 - 學生資產管理系統</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-bg: #1a1a1a;
+            --card-bg: #222;
+            --accent-color: #00ffff;
+            --text-color: white;
+            --border-color: #444;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 10px rgba(0,255,255,0.5);
+        }
+
+        #auth-section { margin-bottom: 20px; padding: 15px; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--accent-color); text-align: center;}
+        input { padding: 8px; margin: 5px; border-radius: 4px; border: 1px solid #555; background: #333; color: white; }
+        
+        .admin-controls { display: none; margin-bottom: 20px; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        
+        .table-container { width: 100%; overflow-x: auto; max-width: 1400px; }
+        table { width: 100%; border-collapse: collapse; background: var(--card-bg); margin-top: 20px; font-size: 13px; }
+        th, td { border: 1px solid var(--border-color); padding: 8px; text-align: center; white-space: nowrap; }
+        th { background-color: #333; color: var(--accent-color); position: sticky; top: 0; }
+        tr:hover { background-color: #2a2a2a; }
+
+        .btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; transition: 0.3s; font-weight: bold; }
+        .btn-login { background: #00ff00; color: #000; }
+        .btn-logout { background: #ff4444; color: white; }
+        .btn-upload { background: #9b4dca; color: white; }
+        .btn-calc { padding: 2px 6px; margin: 0 2px; font-size: 11px; }
+        .btn-plus { background: #28a745; color: white; }
+        .btn-minus { background: #dc3545; color: white; }
+        
+        .ur-column { color: #ffcc00; font-weight: bold; border-left: 2px solid #555; }
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; }
+    </style>
+</head>
+<body>
+
+    <h1><i class="fa-solid fa-gem"></i> 學生卡片資產管理</h1>
+
+    <div id="auth-section">
+        <div id="login-form">
+            <input type="email" id="email" placeholder="管理員信箱">
+            <input type="password" id="password" placeholder="密碼">
+            <button class="btn btn-login" onclick="login()">登入</button>
+        </div>
+        <div id="user-info" style="display:none;">
+            <span id="user-email"></span>
+            <button class="btn btn-logout" onclick="logout()">登出</button>
+        </div>
+    </div>
+
+    <div class="admin-controls" id="admin-controls">
+        <label for="csv-file" class="btn btn-upload"><i class="fa-solid fa-file-import"></i> 匯入並合併 CSV</label>
+        <input type="file" id="csv-file" accept=".csv" style="display:none;" onchange="handleCSV(event)">
+    </div>
+
+    <div class="table-container">
+        <table id="asset-table">
+            <thead>
+                <tr id="table-header"></tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+
+    <div class="loading-overlay" id="loader">
+        <p><i class="fa-solid fa-spinner fa-spin"></i> 處理資料中...</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, doc, setDoc, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyArIXMKMd1zLVVgcNn8KdUNbv3XEZxA1OQ",
+            authDomain: "teachinportfolio-1f100.firebaseapp.com",
+            projectId: "teachinportfolio-1f100",
+            storageBucket: "teachinportfolio-1f100.firebasestorage.app",
+            messagingSenderId: "367006551150",
+            appId: "1:367006551150:web:d8bb677fa08de192beea7f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 卡片清單
+        const cardNames = [
+            "12 號R卡", "11 號R卡", "10 號R卡",
+            "9  號SR卡", "8  號SR卡", "7  號SR卡",
+            "6  號SSR卡", "5  號SSR卡", "4  號SSR卡",
+            "3  號UR卡", "2  號UR卡", "1  號UR卡"
+        ];
+        const extraColumn = "用過UR次數"; // 新增的欄位
+
+        let isAdmin = false;
+
+        // 初始化表格
+        function initTable() {
+            const header = document.getElementById('table-header');
+            let headerHTML = '<th>座號</th>';
+            cardNames.forEach(name => headerHTML += `<th>${name}</th>`);
+            headerHTML += `<th class="ur-column">${extraColumn}</th>`; // 加入最後一列標題
+            header.innerHTML = headerHTML;
+            
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            for (let i = 1; i <= 30; i++) {
+                let row = `<tr id="row-${i}"><td>${i}</td>`;
+                cardNames.forEach((name, idx) => {
+                    row += `<td id="cell-${i}-${idx}">0</td>`;
+                });
+                row += `<td id="cell-${i}-ur" class="ur-column">0</td>`; // 加入最後一列內容單元格
+                row += '</tr>';
+                tbody.innerHTML += row;
+            }
+        }
+
+        // 監聽 Firebase 數據
+        function listenToAssets() {
+            for (let i = 1; i <= 30; i++) {
+                onSnapshot(doc(db, "studentAssets", i.toString()), (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        // 更新普通卡片
+                        cardNames.forEach((name, idx) => {
+                            const cell = document.getElementById(`cell-${i}-${idx}`);
+                            updateCellUI(cell, i, name, data[name] || 0);
+                        });
+                        // 更新「用過UR次數」
+                        const urCell = document.getElementById(`cell-${i}-ur`);
+                        updateCellUI(urCell, i, extraColumn, data[extraColumn] || 0);
+                    }
+                });
+            }
+        }
+
+        function updateCellUI(cell, studentId, fieldName, count) {
+            if (isAdmin) {
+                cell.innerHTML = `
+                    <button class="btn btn-calc btn-minus" onclick="adjust('${studentId}', '${fieldName}', -1)">-</button>
+                    <span style="display:inline-block; min-width:15px">${count}</span>
+                    <button class="btn btn-calc btn-plus" onclick="adjust('${studentId}', '${fieldName}', 1)">+</button>
+                `;
+            } else {
+                cell.textContent = count;
+            }
+        }
+
+        // 手動增減邏輯
+        window.adjust = async (studentId, fieldName, val) => {
+            const docRef = doc(db, "studentAssets", studentId);
+            try {
+                await updateDoc(docRef, { [fieldName]: increment(val) });
+            } catch (e) {
+                const initialData = {};
+                cardNames.forEach(n => initialData[n] = 0);
+                initialData[extraColumn] = 0;
+                initialData[fieldName] = val < 0 ? 0 : val;
+                await setDoc(docRef, initialData);
+            }
+        };
+
+        // CSV 匯入邏輯 (累加)
+        window.handleCSV = async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            document.getElementById('loader').style.display = 'flex';
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const text = e.target.result;
+                const rows = text.split('\n').filter(r => r.trim() !== '').map(row => row.split(','));
+                
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    const studentId = row[0].trim();
+                    if (!studentId || isNaN(studentId)) continue;
+
+                    const docRef = doc(db, "studentAssets", studentId);
+                    let updates = {};
+                    
+                    cardNames.forEach((name, idx) => {
+                        const count = parseInt(row[idx + 1]) || 0;
+                        if (count > 0) updates[name] = increment(count);
+                    });
+
+                    // 檢查 CSV 是否有包含「用過UR次數」列 (如果 CSV 也是從本系統匯出的話)
+                    if (row.length > cardNames.length + 1) {
+                        const urCount = parseInt(row[cardNames.length + 1]) || 0;
+                        if (urCount > 0) updates[extraColumn] = increment(urCount);
+                    }
+
+                    if (Object.keys(updates).length > 0) {
+                        try {
+                            await updateDoc(docRef, updates);
+                        } catch (err) {
+                            const newData = {};
+                            cardNames.forEach((name, idx) => newData[name] = parseInt(row[idx + 1]) || 0);
+                            newData[extraColumn] = parseInt(row[cardNames.length + 1]) || 0;
+                            await setDoc(docRef, newData);
+                        }
+                    }
+                }
+                document.getElementById('loader').style.display = 'none';
+                alert('資料已成功合併！');
+                event.target.value = ''; // 清除 input 讓下次同檔案上傳可觸發
+            };
+            reader.readAsText(file);
+        };
+
+        // Auth 邏輯
+        window.login = async () => {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (e) { alert("登入失敗: " + e.message); }
+        };
+
+        window.logout = () => signOut(auth);
+
+        onAuthStateChanged(auth, (user) => {
+            isAdmin = !!user;
+            document.getElementById('login-form').style.display = user ? 'none' : 'block';
+            document.getElementById('user-info').style.display = user ? 'block' : 'none';
+            document.getElementById('admin-controls').style.display = user ? 'flex' : 'none';
+            if(user) document.getElementById('user-email').textContent = `管理員: ${user.email}`;
+            
+            initTable();
+            listenToAssets();
+        });
+
+    </script>
+</body>
+</html>
