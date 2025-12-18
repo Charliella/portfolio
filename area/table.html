@@ -12,6 +12,10 @@
             --accent-color: #00ffff;
             --text-color: white;
             --border-color: #444;
+            --no-bg: #4a4a4a;      /* 座號淺灰色背景 */
+            --no-text: #ffff00;    /* 座號黃色文字 */
+            --sr-bg: #1b4d2e;      /* SR 深綠色 */
+            --ssr-bg: #b8860b;     /* SSR 深金色 */
         }
 
         body {
@@ -19,7 +23,7 @@
             color: var(--text-color);
             font-family: 'Arial', sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -30,31 +34,87 @@
             -webkit-background-clip: text;
             color: transparent;
             text-shadow: 0 0 10px rgba(0,255,255,0.5);
+            font-size: 2rem;
+            margin: 10px 0;
         }
 
-        #auth-section { margin-bottom: 20px; padding: 15px; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--accent-color); text-align: center;}
-        input { padding: 8px; margin: 5px; border-radius: 4px; border: 1px solid #555; background: #333; color: white; }
+        #auth-section { margin-bottom: 15px; padding: 10px; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--accent-color); }
+        input { padding: 6px; margin: 3px; border-radius: 4px; border: 1px solid #555; background: #333; color: white; }
         
-        .admin-controls { display: none; margin-bottom: 20px; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .admin-controls { display: none; margin-bottom: 15px; gap: 8px; flex-wrap: wrap; justify-content: center; }
         
-        .table-container { width: 100%; overflow-x: auto; max-width: 1400px; }
-        table { width: 100%; border-collapse: collapse; background: var(--card-bg); margin-top: 20px; font-size: 13px; }
-        th, td { border: 1px solid var(--border-color); padding: 12px; text-align: center; white-space: nowrap; }
-        th { background-color: #333; color: var(--accent-color); position: sticky; top: 0; }
-        tr:hover { background-color: #2a2a2a; }
+        .table-container { width: 100%; overflow-x: auto; padding-bottom: 20px; }
+        
+        table { width: 100%; border-collapse: separate; border-spacing: 2px; background: var(--card-bg); font-size: 24px; }
+        th, td { border: 1px solid var(--border-color); padding: 8px 2px; text-align: center; white-space: nowrap; border-radius: 4px; }
+        
+        /* 標題設定 */
+        th { 
+            background-color: #2a2a2a; 
+            color: var(--accent-color); 
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+            font-size: 12px; 
+            font-weight: normal;
+        }
+        
+        /* 座號直行 - 淺灰色背景 + 黃色文字 */
+        th:first-child, td:first-child { 
+            background-color: var(--no-bg) !important; 
+            color: var(--no-text) !important;
+            font-weight: bold; 
+            width: 50px; 
+            font-size: 20px;
+            border-right: 2px solid #666; 
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
 
-        /* 登入後的儲存格樣式 */
-        .editable { cursor: pointer; transition: background 0.2s; }
-        .editable:hover { background: #444; border: 1px solid var(--accent-color); }
+        /* --- 等級欄位樣式 --- */
+        .col-sr { background-color: var(--sr-bg) !important; }
+        .col-ssr { background-color: var(--ssr-bg) !important; color: #fff; text-shadow: 1px 1px 2px #000; }
+        
+        /* UR 強化版霓虹發光動畫 */
+        .col-ur {
+            animation: diamond-neon-glow 5s infinite alternate;
+            font-weight: 900;
+            color: #000 !important; 
+            border: 1px solid rgba(255,255,255,0.6) !important;
+        }
 
-        .btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; transition: 0.3s; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
+        @keyframes diamond-neon-glow {
+            0% { 
+                background-color: #ffffff; /* 冷銀白 */
+                box-shadow: 0 0 15px #fff, inset 0 0 8px #fff;
+                filter: drop-shadow(0 0 4px #fff);
+            }
+            33% { 
+                background-color: #ffb7c5; /* 淺玫瑰金 */
+                box-shadow: 0 0 25px #ff69b4, inset 0 0 12px #ffb6c1;
+                filter: drop-shadow(0 0 12px #ff1493);
+            }
+            66% { 
+                background-color: #e0b0ff; /* 珍珠粉紫 */
+                box-shadow: 0 0 25px #9400d3, inset 0 0 12px #da70d6;
+                filter: drop-shadow(0 0 12px #8a2be2);
+            }
+            100% { 
+                background-color: #a2e4f0; /* 極淺冰藍 */
+                box-shadow: 0 0 25px #00bfff, inset 0 0 12px #87cefa;
+                filter: drop-shadow(0 0 12px #1e90ff);
+            }
+        }
+
+        .ur-column { color: #ffcc00; font-weight: bold; border-left: 2px solid #777; font-size: 26px; }
+
+        .editable { cursor: pointer; transition: 0.2s; }
+        .editable:hover { outline: 2px solid white; z-index: 5; position: relative; }
+
+        .btn { padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; transition: 0.3s; font-weight: bold; font-size: 14px; }
         .btn-login { background: #00ff00; color: #000; }
         .btn-logout { background: #ff4444; color: white; }
         .btn-upload { background: #9b4dca; color: white; }
-        .btn-export { background: #007bff; color: white; }
-        .btn-reset { background: #ff4444; color: white; }
         
-        .ur-column { color: #ffcc00; font-weight: bold; border-left: 2px solid #555; }
         .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; }
     </style>
 </head>
@@ -75,11 +135,10 @@
     </div>
 
     <div class="admin-controls" id="admin-controls">
-        <label for="csv-file" class="btn btn-upload"><i class="fa-solid fa-file-import"></i> 匯入並合併 CSV</label>
+        <label for="csv-file" class="btn btn-upload">匯入合併 CSV</label>
         <input type="file" id="csv-file" accept=".csv" style="display:none;" onchange="handleCSV(event)">
-        
-        <button class="btn btn-export" onclick="exportCurrentData()"><i class="fa-solid fa-file-export"></i> 匯出目前資料 CSV</button>
-        <button class="btn btn-reset" onclick="resetAllData()"><i class="fa-solid fa-trash-can"></i> 刪除所有資料 (歸零)</button>
+        <button class="btn btn-export" onclick="exportCurrentData()" style="background:#007bff; color:white;">匯出 CSV</button>
+        <button class="btn btn-reset" onclick="resetAllData()" style="background:#ff4444; color:white;">資料歸零</button>
     </div>
 
     <div class="table-container">
@@ -92,13 +151,13 @@
     </div>
 
     <div class="loading-overlay" id="loader">
-        <p><i class="fa-solid fa-spinner fa-spin"></i> 處理資料中...</p>
+        <p><i class="fa-solid fa-spinner fa-spin"></i> 處理中...</p>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-        import { getFirestore, doc, setDoc, updateDoc, increment, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyArIXMKMd1zLVVgcNn8KdUNbv3XEZxA1OQ",
@@ -122,12 +181,21 @@
         const extraColumn = "用過UR次數";
 
         let isAdmin = false;
-        let currentDBData = {}; // 儲存目前的快照資料以便匯出
+        let currentDBData = {}; 
+
+        function getLevelClass(name) {
+            if (name.includes("UR")) return "col-ur";
+            if (name.includes("SSR")) return "col-ssr";
+            if (name.includes("SR")) return "col-sr";
+            return "";
+        }
 
         function initTable() {
             const header = document.getElementById('table-header');
             let headerHTML = '<th>座號</th>';
-            cardNames.forEach(name => headerHTML += `<th>${name}</th>`);
+            cardNames.forEach(name => {
+                headerHTML += `<th class="${getLevelClass(name)}">${name}</th>`;
+            });
             headerHTML += `<th class="ur-column">${extraColumn}</th>`;
             header.innerHTML = headerHTML;
             
@@ -136,7 +204,7 @@
             for (let i = 1; i <= 30; i++) {
                 let row = `<tr id="row-${i}"><td>${i}</td>`;
                 cardNames.forEach((name, idx) => {
-                    row += `<td id="cell-${i}-${idx}" data-student="${i}" data-field="${name}">0</td>`;
+                    row += `<td id="cell-${i}-${idx}" class="${getLevelClass(name)}" data-student="${i}" data-field="${name}">0</td>`;
                 });
                 row += `<td id="cell-${i}-ur" class="ur-column" data-student="${i}" data-field="${extraColumn}">0</td>`;
                 row += '</tr>';
@@ -149,13 +217,12 @@
                 onSnapshot(doc(db, "studentAssets", i.toString()), (docSnap) => {
                     const data = docSnap.exists() ? docSnap.data() : {};
                     currentDBData[i] = data;
-                    
                     cardNames.forEach((name, idx) => {
                         const cell = document.getElementById(`cell-${i}-${idx}`);
-                        updateCellUI(cell, data[name] || 0);
+                        if(cell) updateCellUI(cell, data[name] || 0);
                     });
                     const urCell = document.getElementById(`cell-${i}-ur`);
-                    updateCellUI(urCell, data[extraColumn] || 0);
+                    if(urCell) updateCellUI(urCell, data[extraColumn] || 0);
                 });
             }
         }
@@ -171,20 +238,13 @@
             }
         }
 
-        // 直接編輯數值
         window.editValue = async (studentId, fieldName, currentVal) => {
-            const newVal = prompt(`修改座號 ${studentId} 的 [${fieldName}]\n目前數值: ${currentVal}`, currentVal);
+            const newVal = prompt(`修改座號 ${studentId} 的 [${fieldName}]`, currentVal);
             if (newVal === null || newVal === "" || isNaN(newVal)) return;
-
-            const docRef = doc(db, "studentAssets", studentId);
-            try {
-                await setDoc(docRef, { [fieldName]: parseInt(newVal) }, { merge: true });
-            } catch (e) {
-                alert("更新失敗: " + e.message);
-            }
+            try { await setDoc(doc(db, "studentAssets", studentId), { [fieldName]: parseInt(newVal) }, { merge: true }); } 
+            catch (e) { alert("失敗"); }
         };
 
-        // 匯出 CSV 功能
         window.exportCurrentData = () => {
             let csvContent = "\uFEFF座號," + cardNames.join(",") + "," + extraColumn + "\n";
             for (let i = 1; i <= 30; i++) {
@@ -197,97 +257,57 @@
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `學生資產統計表_${new Date().toLocaleDateString()}.csv`;
+            link.download = `卡片管理匯出.csv`;
             link.click();
         };
 
-        // 刪除/重設所有資料
         window.resetAllData = async () => {
-            if (!confirm("警告！這將會把所有 1-30 號學生的所有數值「歸零」。\n此操作無法復原，確定要執行嗎？")) return;
-            
+            if (!confirm("確定全部歸零？")) return;
             document.getElementById('loader').style.display = 'flex';
-            try {
-                const zeroData = {};
-                cardNames.forEach(name => zeroData[name] = 0);
-                zeroData[extraColumn] = 0;
-
-                for (let i = 1; i <= 30; i++) {
-                    await setDoc(doc(db, "studentAssets", i.toString()), zeroData);
-                }
-                alert("所有資料已歸零。");
-            } catch (e) {
-                alert("歸零過程出錯: " + e.message);
-            }
+            const zeroData = {}; cardNames.forEach(name => zeroData[name] = 0); zeroData[extraColumn] = 0;
+            for (let i = 1; i <= 30; i++) { await setDoc(doc(db, "studentAssets", i.toString()), zeroData); }
             document.getElementById('loader').style.display = 'none';
+            alert("已完成歸零");
         };
 
-        // CSV 匯入邏輯 (累加)
         window.handleCSV = async (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
+            const file = event.target.files[0]; if (!file) return;
             document.getElementById('loader').style.display = 'flex';
-
             const reader = new FileReader();
             reader.onload = async (e) => {
-                const text = e.target.result;
-                const rows = text.split('\n').filter(r => r.trim() !== '').map(row => row.split(','));
-                
+                const rows = e.target.result.split('\n').filter(r => r.trim() !== '').map(row => row.split(','));
                 for (let i = 1; i < rows.length; i++) {
-                    const row = rows[i];
-                    const studentId = row[0].trim();
+                    const row = rows[i]; const studentId = row[0].trim();
                     if (!studentId || isNaN(studentId)) continue;
-
-                    const docRef = doc(db, "studentAssets", studentId);
                     let updates = {};
                     cardNames.forEach((name, idx) => {
                         const count = parseInt(row[idx + 1]) || 0;
                         if (count > 0) updates[name] = increment(count);
                     });
-                    if (row.length > cardNames.length + 1) {
-                        const urCount = parseInt(row[cardNames.length + 1]) || 0;
-                        if (urCount > 0) updates[extraColumn] = increment(urCount);
-                    }
-
                     if (Object.keys(updates).length > 0) {
-                        try {
-                            await updateDoc(docRef, updates);
-                        } catch (err) {
-                            const newData = {};
-                            cardNames.forEach((name, idx) => newData[name] = parseInt(row[idx + 1]) || 0);
-                            newData[extraColumn] = parseInt(row[cardNames.length + 1]) || 0;
-                            await setDoc(docRef, newData);
-                        }
+                        try { await updateDoc(doc(db, "studentAssets", studentId), updates); } 
+                        catch (err) { }
                     }
                 }
                 document.getElementById('loader').style.display = 'none';
-                alert('資料已成功合併！');
-                event.target.value = '';
+                alert('資料合併完成');
             };
             reader.readAsText(file);
         };
 
-        // Auth 邏輯
         window.login = async () => {
             const email = document.getElementById('email').value;
             const pass = document.getElementById('password').value;
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
-            } catch (e) { alert("登入失敗: " + e.message); }
+            try { await signInWithEmailAndPassword(auth, email, pass); } catch (e) { alert("登入失敗"); }
         };
-
         window.logout = () => signOut(auth);
-
         onAuthStateChanged(auth, (user) => {
             isAdmin = !!user;
             document.getElementById('login-form').style.display = user ? 'none' : 'block';
             document.getElementById('user-info').style.display = user ? 'block' : 'none';
             document.getElementById('admin-controls').style.display = user ? 'flex' : 'none';
-            if(user) document.getElementById('user-email').textContent = `管理員: ${user.email}`;
-            
-            initTable();
-            listenToAssets();
+            initTable(); listenToAssets();
         });
-
     </script>
 </body>
 </html>
