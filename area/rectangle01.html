@@ -2,577 +2,362 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>四邊形家族與面積魔法 (終極修復版)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>四邊形實驗室 - 平板與電腦優化版</title>
     <style>
         :root {
-            --bg-color: #f8fafc;
-            --primary: #4338ca;      /* 靛藍 */
-            --accent: #ea580c;       /* 亮橘 (切割塊) */
+            --bg-color: #f1f5f9;
+            --primary: #4338ca;
+            --accent: #ea580c;
+            --success: #10b981;
             --panel-bg: #ffffff;
-            --border: #cbd5e1;
         }
 
         body {
-            font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif;
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
             background-color: var(--bg-color);
-            color: #334155;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column; align-items: center;
+            overflow-x: hidden; touch-action: manipulation;
         }
 
-        h1 { margin-bottom: 5px; color: var(--primary); }
-        p.subtitle { color: #64748b; margin-bottom: 20px; }
-
-        /* 分頁按鈕 */
+        /* 模式切換導覽 */
         .nav-container {
-            display: flex; gap: 15px; background: white; padding: 8px;
-            border-radius: 50px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px;
+            display: flex; gap: 10px; background: white; padding: 6px;
+            border-radius: 50px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin: 20px 0;
         }
         .nav-btn {
-            padding: 10px 30px; border: none; background: transparent;
-            border-radius: 40px; font-size: 1.1rem; font-weight: bold;
-            color: #64748b; cursor: pointer; transition: all 0.2s;
+            padding: 10px 25px; border: none; background: transparent;
+            border-radius: 40px; font-weight: bold; color: #64748b; cursor: pointer;
         }
-        .nav-btn.active { background-color: var(--primary); color: white; box-shadow: 0 4px 6px rgba(67, 56, 202, 0.3); }
+        .nav-btn.active { background-color: var(--primary); color: white; }
 
-        /* 區塊顯示 */
-        .section { display: none; width: 100%; max-width: 1200px; animation: fadeIn 0.3s ease-in; }
-        .section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* === 分頁1: 家族圖 === */
-        .family-map { display: flex; flex-direction: column; align-items: center; gap: 30px; }
-        .root-box {
-            border: 3px solid var(--border); background: white; padding: 15px 50px;
-            border-radius: 12px; font-weight: bold; font-size: 1.2rem;
-        }
-        .split-row { display: flex; width: 100%; gap: 40px; justify-content: center; }
-        .group-box {
-            flex: 1; background: white; border-radius: 16px; padding: 25px;
-            border-top: 6px solid #ccc; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-        .venn-grid {
-            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;
-            position: relative; padding-top: 40px; margin-top: 20px;
-        }
-        .set-dashed {
-            position: absolute; top: 0; bottom: 0; border-radius: 12px;
-            border: 2px dashed; pointer-events: none;
-        }
-        .card {
-            background: white; border: 2px solid #e2e8f0; border-radius: 12px;
-            padding: 15px; text-align: center; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
+        /* 主要佈局 */
+        .main-container {
+            display: flex; gap: 20px; width: 95%; max-width: 1200px;
+            flex-direction: row; 
         }
 
-        /* === 分頁2: 面積實驗室 === */
-        .lab-layout {
-            display: flex; gap: 25px; justify-content: center; flex-wrap: wrap;
-        }
+        /* 平板版樣式調整：垂直排列 */
+        .tablet-mode { flex-direction: column !important; }
+        .tablet-mode .control-panel { width: 100% !important; flex-direction: row; flex-wrap: wrap; }
+        .tablet-mode .btn { flex: 1; min-width: 120px; padding: 20px 10px; }
+        .tablet-mode .play-btn { width: 100%; padding: 25px; }
+
         .control-panel {
-            width: 280px; background: white; padding: 25px;
-            border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); height: fit-content;
+            width: 280px; background: var(--panel-bg); padding: 20px;
+            border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column; gap: 12px;
+            box-sizing: border-box;
         }
-        
-        .tool-btn {
-            display: block; width: 100%; padding: 15px; margin-bottom: 12px;
-            background: white; border: 2px solid #e2e8f0; border-radius: 10px;
-            cursor: pointer; font-size: 1rem; font-weight: bold; text-align: left;
-            transition: all 0.2s;
-        }
-        .tool-btn:hover { border-color: var(--primary); color: var(--primary); }
-        .tool-btn.selected { border-color: var(--primary); background: #e0e7ff; color: var(--primary); }
 
-        .play-btn {
-            width: 100%; padding: 15px; margin-top: 20px; border-radius: 10px;
-            border: none; color: white; font-weight: bold; font-size: 1.2rem; cursor: pointer;
-            background: linear-gradient(135deg, #ea580c, #c2410c); /* 鮮豔橘 */
-            box-shadow: 0 4px 0 #9a3412; transition: transform 0.1s;
-        }
-        .play-btn:active { transform: translateY(3px); box-shadow: none; }
-        .play-btn:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
-
-        .reset-btn {
-            width: 100%; padding: 10px; margin-top: 10px; background: #cbd5e1;
-            border: none; border-radius: 8px; color: #475569; font-weight: bold; cursor: pointer;
-        }
-        .reset-btn:hover { background: #94a3b8; color: white; }
-
-        .canvas-container {
-            flex: 1; background: white; padding: 20px;
-            border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            display: flex; flex-direction: column; align-items: center;
+        .canvas-area {
+            flex: 1; background: white; padding: 15px; border-radius: 20px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); text-align: center;
         }
 
         canvas {
-            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-            background-size: 20px 20px;
-            border: 2px dashed #94a3b8;
-            border-radius: 12px;
-            cursor: crosshair;
-            touch-action: none; /* 防止觸控捲動 */
+            width: 100%; height: auto; border: 2px solid #e2e8f0; border-radius: 12px;
+            background: radial-gradient(#cbd5e1 1px, transparent 1px) 0 0 / 25px 25px;
+            touch-action: none; cursor: crosshair;
         }
 
-        .formula-bar {
-            margin-top: 15px; width: 95%; padding: 15px;
-            background: #eff6ff; border-left: 5px solid var(--primary);
-            color: #1e3a8a; font-weight: bold; font-size: 1.2rem;
+        .btn {
+            padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px;
+            background: white; cursor: pointer; font-weight: 600; font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .btn.active { border-color: var(--primary); background: #eef2ff; color: var(--primary); }
+        
+        .play-btn {
+            padding: 18px; border: none; border-radius: 12px; color: white;
+            font-weight: bold; font-size: 1.1rem; cursor: pointer;
+            background: #94a3b8; box-shadow: 0 4px 0 #64748b;
+        }
+        .play-btn.ready { 
+            background: linear-gradient(135deg, var(--accent), #c2410c); 
+            box-shadow: 0 4px 0 #9a3412;
+        }
+        .play-btn:active { transform: translateY(2px); box-shadow: none; }
+
+        .hint-text {
+            background: #fff7ed; padding: 12px; border-radius: 10px;
+            font-size: 0.95rem; color: #9a3412; border-left: 4px solid var(--accent);
+            width: 100%; box-sizing: border-box;
         }
 
+        #formula { font-size: 1.2rem; font-weight: bold; margin-top: 15px; color: var(--primary); }
     </style>
 </head>
 <body>
 
-    <h1>四邊形家族與面積魔法 (終極修復版)</h1>
-    <p class="subtitle">拖曳藍色圓點改變形狀，點擊橘色按鈕觀看切割動畫</p>
-
     <div class="nav-container">
-        <button class="nav-btn active" onclick="switchTab('family')">1. 家族關係圖</button>
-        <button class="nav-btn" onclick="switchTab('lab')">2. 面積實驗室</button>
+        <button id="nav-pc" class="nav-btn active" onclick="switchMode('pc')">💻 電腦模式</button>
+        <button id="nav-tablet" class="nav-btn" onclick="switchMode('tablet')">📱 平板模式</button>
     </div>
 
-    <!-- 分頁 1 -->
-    <div id="tab-family" class="section active">
-        <div class="family-map">
-            <div class="root-box">任意四邊形</div>
-            <div class="split-row">
-                <!-- 梯形 -->
-                <div class="group-box" style="border-color: #d97706;">
-                    <h3 style="color:#d97706; margin:0 0 10px 0;">梯形家族</h3>
-                    <p style="color:#666; font-size:0.9rem;">定義：只有一組對邊平行</p>
-                    <div class="card" style="border-color:#d97706;">
-                        <b>梯形 / 等腰梯形</b>
-                        <canvas id="icon-trap" width="120" height="70"></canvas>
-                    </div>
-                </div>
-                <!-- 平行四邊形 -->
-                <div class="group-box" style="border-color: #059669;">
-                    <h3 style="color:#059669; margin:0 0 10px 0;">平行四邊形家族</h3>
-                    <p style="color:#666; font-size:0.9rem;">定義：兩組對邊分別平行</p>
-                    
-                    <div class="venn-grid">
-                        <div class="set-dashed" style="left:0; right:35%; border-color:#2563eb; background:rgba(37,99,235,0.05);"><span style="position:absolute;top:5px;left:5px;font-size:0.8rem;color:#2563eb;font-weight:bold;">長方形集合</span></div>
-                        <div class="set-dashed" style="right:0; left:35%; border-color:#7c3aed; background:rgba(124,58,237,0.05);"><span style="position:absolute;bottom:5px;right:5px;font-size:0.8rem;color:#7c3aed;font-weight:bold;">菱形集合</span></div>
-
-                        <div class="card" style="grid-column:1; border-color:#2563eb;"><b>長方形</b><canvas id="icon-rect" width="60" height="40"></canvas></div>
-                        <div class="card" style="grid-column:2; border-color:#db2777; transform:scale(1.1); z-index:5;"><b>正方形</b><canvas id="icon-sq" width="50" height="50"></canvas></div>
-                        <div class="card" style="grid-column:3; border-color:#7c3aed;"><b>菱形</b><canvas id="icon-rhom" width="60" height="40"></canvas></div>
-                    </div>
-                </div>
+    <div id="wrapper" class="main-container">
+        <div class="control-panel">
+            <button class="btn active" id="type-para" onclick="setShape('para')">▱ 平行四邊形</button>
+            <button class="btn" id="type-tri" onclick="setShape('tri')">△ 三角形</button>
+            <button class="btn" id="type-trap" onclick="setShape('trap')">⏢ 梯形</button>
+            
+            <div id="para-steps" style="display: flex; flex-direction: inherit; gap: 12px; width: 100%;">
+                <div style="border-top: 1px solid #eee; margin: 5px 0;"></div>
+                <button class="btn active" id="step-edit" onclick="setStep('edit')">1. 調整形狀</button>
+                <button class="btn" id="step-select" onclick="setStep('select')">2. 選取底邊</button>
             </div>
+            
+            <div class="hint-text" id="hint-box">請拖曳藍點調整形狀</div>
+            
+            <button id="playBtn" class="play-btn" onclick="runAnimation()">▶ 啟動動畫</button>
+            <button class="btn" style="border:none; color:#ef4444;" onclick="reset()">↺ 重置</button>
         </div>
-    </div>
 
-    <!-- 分頁 2 -->
-    <div id="tab-lab" class="section">
-        <div class="lab-layout">
-            <div class="control-panel">
-                <button class="tool-btn selected" onclick="setTool('para')">▱ 平行四邊形</button>
-                <button class="tool-btn" onclick="setTool('tri')">△ 三角形</button>
-                <button class="tool-btn" onclick="setTool('trap')">⏢ 梯形</button>
-                
-                <div style="margin-top:20px; color:#64748b; font-size:0.9rem;">
-                    提示：<br>
-                    1. 隨意拖曳藍色圓點<br>
-                    2. 嘗試將平行四邊形拉得很扁<br>
-                    3. 按下按鈕觀察結果
-                </div>
-
-                <button id="animBtn" class="play-btn" onclick="startAnim()">▶ 面積切割動畫</button>
-                <button class="reset-btn" onclick="resetShape()">↺ 重置畫布</button>
-            </div>
-
-            <div class="canvas-container">
-                <!-- 畫布尺寸設定 800x600 -->
-                <canvas id="labCanvas" width="800" height="600"></canvas>
-                <div class="formula-bar" id="formula-text">平行四邊形面積 = 底 × 高</div>
-            </div>
+        <div class="canvas-area">
+            <canvas id="canvas" width="800" height="500"></canvas>
+            <div id="formula">面積 = 底 × 高</div>
         </div>
     </div>
 
     <script>
-        /* =========================================
-           核心數學庫 (Vector Math) - 確保計算穩定
-           ========================================= */
-        const Vec = {
+        const V = {
             add: (v1, v2) => ({x: v1.x + v2.x, y: v1.y + v2.y}),
             sub: (v1, v2) => ({x: v1.x - v2.x, y: v1.y - v2.y}),
             mul: (v, s) => ({x: v.x * s, y: v.y * s}),
             dot: (v1, v2) => v1.x * v2.x + v1.y * v2.y,
-            magSq: (v) => v.x*v.x + v.y*v.y,
-            mag: (v) => Math.sqrt(v.x*v.x + v.y*v.y),
-            norm: (v) => {
-                const m = Math.sqrt(v.x*v.x + v.y*v.y);
-                return m < 0.0001 ? {x:0, y:0} : {x: v.x/m, y: v.y/m};
+            dist: (v1, v2) => Math.sqrt((v1.x-v2.x)**2 + (v1.y-v2.y)**2),
+            proj: (p, a, b) => {
+                const ab = V.sub(b, a);
+                const t = V.dot(V.sub(p, a), ab) / (V.dot(ab, ab) || 1);
+                return V.add(a, V.mul(ab, t));
             },
-            project: (p, a, b) => {
-                // 投影點 P 到線段 AB 所在的直線上
-                const ab = Vec.sub(b, a);
-                const ap = Vec.sub(p, a);
-                const lenSq = Vec.magSq(ab);
-                if(lenSq < 0.0001) return a; // 防止除以零
-                const t = Vec.dot(ap, ab) / lenSq;
-                return Vec.add(a, Vec.mul(ab, t));
+            inSeg: (p, a, b) => {
+                const d1 = V.dot(V.sub(p, a), V.sub(b, a));
+                const d2 = V.dot(V.sub(p, b), V.sub(a, b));
+                return d1 >= -1 && d2 >= -1;
             }
         };
 
-        /* =========================================
-           全域狀態
-           ========================================= */
-        let currentTool = 'para';
-        let points = [];
-        let dragIdx = -1;
-        let isAnim = false;
-        let animProgress = 0;
-        let animId = null;
-
-        const canvas = document.getElementById('labCanvas');
+        const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+        let shapeType = 'para'; 
+        let step = 'edit';
+        let points = []; 
+        let selectedBaseIdx = -1;
+        let isAnim = false;
+        let dragIdx = -1;
 
-        // 初始化
-        window.onload = () => {
-            drawIcons();
-            resetShape();
-        };
+        function switchMode(m) {
+            document.getElementById('wrapper').classList.toggle('tablet-mode', m === 'tablet');
+            document.getElementById('nav-pc').classList.toggle('active', m === 'pc');
+            document.getElementById('nav-tablet').classList.toggle('active', m === 'tablet');
+            setTimeout(reset, 50); // 確保 DOM 渲染後再重繪
+        }
 
-        /* =========================================
-           互動與工具切換
-           ========================================= */
-        function switchTab(tab) {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        function setShape(s) {
+            shapeType = s;
+            document.querySelectorAll('[id^="type-"]').forEach(el => el.classList.toggle('active', el.id === 'type-'+s));
             
-            if(tab === 'family') {
-                document.querySelector('.nav-btn:nth-child(1)').classList.add('active');
-                document.getElementById('tab-family').classList.add('active');
+            // 只有平行四邊形顯示選底步驟
+            document.getElementById('para-steps').style.display = (s === 'para') ? 'flex' : 'none';
+            
+            const f = {para:'底 × 高', tri:'(底 × 高) ÷ 2', trap:'(上底 + 下底) × 高 ÷ 2'};
+            document.getElementById('formula').innerText = '面積 = ' + f[s];
+            reset();
+        }
+
+        function setStep(s) {
+            step = s;
+            document.getElementById('step-edit').classList.toggle('active', s==='edit');
+            document.getElementById('step-select').classList.toggle('active', s==='select');
+            
+            if(s==='edit') {
+                document.getElementById('hint-box').innerHTML = "請拖曳藍點調整形狀";
+                selectedBaseIdx = -1;
+                updatePlayBtn(false);
             } else {
-                document.querySelector('.nav-btn:nth-child(2)').classList.add('active');
-                document.getElementById('tab-lab').classList.add('active');
-                resetShape();
-            }
-        }
-
-        function setTool(tool) {
-            if(isAnim) return;
-            currentTool = tool;
-            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
-            resetShape();
-        }
-
-        function resetShape() {
-            cancelAnimationFrame(animId);
-            isAnim = false;
-            document.getElementById('animBtn').disabled = false;
-            
-            // 初始位置設定 (留出右側空間給動畫)
-            const cx = 250; 
-            const cy = 350;
-
-            if(currentTool === 'para') {
-                // 0:LB, 1:RB, 2:LT
-                points = [
-                    {x: cx,     y: cy}, 
-                    {x: cx+200, y: cy}, 
-                    {x: cx+50,  y: cy-150} 
-                ];
-                updateFormula("平行四邊形面積 = 底 × 高");
-            } else if(currentTool === 'tri') {
-                points = [
-                    {x: cx,     y: cy},
-                    {x: cx+200, y: cy},
-                    {x: cx+100, y: cy-150}
-                ];
-                updateFormula("三角形面積 = (底 × 高) ÷ 2");
-            } else if(currentTool === 'trap') {
-                // 0:LB, 1:RB, 2:RT, 3:LT
-                points = [
-                    {x: cx,     y: cy},
-                    {x: cx+200, y: cy},
-                    {x: cx+150, y: cy-120},
-                    {x: cx+50,  y: cy-120}
-                ];
-                updateFormula("梯形面積 = (上底 + 下底) × 高 ÷ 2");
+                document.getElementById('hint-box').innerHTML = "請點擊圖形的一條<b>邊</b>作為底";
+                updatePlayBtn(false);
             }
             draw();
         }
 
-        function updateFormula(text) {
-            document.getElementById('formula-text').innerText = text;
+        function reset() {
+            isAnim = false;
+            // 修正平板模式座標：確保圖形在可見範圍中央
+            const cx = canvas.width / 4, cy = canvas.height * 0.7;
+            if(shapeType === 'para') {
+                points = [{x:cx, y:cy}, {x:cx+250, y:cy}, {x:cx+80, y:cy-180}];
+                setStep('edit');
+            } else {
+                if(shapeType === 'tri') points = [{x:cx, y:cy}, {x:cx+250, y:cy}, {x:cx+125, y:cy-180}];
+                else points = [{x:cx, y:cy}, {x:cx+300, y:cy}, {x:cx+220, y:cy-150}, {x:cx+80, y:cy-150}];
+                selectedBaseIdx = 0; // 三角形與梯形預設底為 0
+                updatePlayBtn(true);
+                document.getElementById('hint-box').innerHTML = "準備就緒，請啟動動畫";
+            }
+            draw();
         }
 
-        /* =========================================
-           滑鼠拖曳邏輯 (含約束修正)
-           ========================================= */
-        canvas.addEventListener('mousedown', e => {
-            if(isAnim) return;
-            const pos = getPos(e);
-            let minDist = 20;
-            points.forEach((p, i) => {
-                const d = Vec.mag(Vec.sub(p, pos));
-                if(d < minDist) { minDist = d; dragIdx = i; }
-            });
-        });
-
-        canvas.addEventListener('mousemove', e => {
-            const pos = getPos(e);
-            if(dragIdx !== -1) {
-                // 邊界限制
-                pos.x = Math.max(20, Math.min(canvas.width-20, pos.x));
-                pos.y = Math.max(20, Math.min(canvas.height-20, pos.y));
-                
-                if(currentTool === 'trap') handleTrapDrag(dragIdx, pos);
-                else points[dragIdx] = pos;
-                
-                draw();
+        function getEdges() {
+            let p = points;
+            if(shapeType === 'para') {
+                const v = V.sub(p[1], p[0]);
+                const p3 = V.add(p[2], v);
+                return [[p[0],p[1]], [p[1],p3], [p3,p[2]], [p[2],p[0]]];
+            } else if(shapeType === 'tri') {
+                return [[p[0],p[1]], [p[1],p[2]], [p[2],p[0]]];
             } else {
-                let hover = false;
-                points.forEach(p => { if(Vec.mag(Vec.sub(p, pos)) < 20) hover = true; });
-                canvas.style.cursor = hover ? 'pointer' : 'crosshair';
+                return [[p[0],p[1]], [p[1],p[2]], [p[2],p[3]], [p[3],p[0]]];
             }
-        });
-
-        window.addEventListener('mouseup', () => dragIdx = -1);
+        }
 
         function getPos(e) {
-            const r = canvas.getBoundingClientRect();
-            return {x: e.clientX - r.left, y: e.clientY - r.top};
+            const rect = canvas.getBoundingClientRect();
+            const clientX = (e.touches && e.touches.length) ? e.touches[0].clientX : e.clientX;
+            const clientY = (e.touches && e.touches.length) ? e.touches[0].clientY : e.clientY;
+            // 考慮 Canvas 縮放比例
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
         }
 
-        // 梯形約束：保持上底平行於下底，且防止交叉
-        function handleTrapDrag(idx, pos) {
-            // points: 0:LB, 1:RB, 2:RT, 3:LT
-            // 下底向量
-            const baseVec = Vec.sub(points[1], points[0]);
-            const baseDir = Vec.norm(baseVec);
+        canvas.onmousedown = canvas.ontouchstart = (e) => {
+            if(isAnim) return;
+            const pos = getPos(e);
+            if(shapeType === 'para' && step === 'select') {
+                const edges = getEdges();
+                edges.forEach((edge, i) => {
+                    const h = V.proj(pos, edge[0], edge[1]);
+                    if(V.dist(pos, h) < 30 && V.inSeg(h, edge[0], edge[1])) validateBase(i);
+                });
+            } else {
+                const threshold = 40; // 增加觸控感應半徑
+                points.forEach((p, i) => { if(V.dist(p, pos) < threshold) dragIdx = i; });
+            }
+        };
 
-            if(idx === 0 || idx === 1) {
-                // 拖曳下底：自由移動
-                points[idx] = pos;
-                // 讓上底跟著旋轉以保持平行 (選擇保持上底長度不變)
-                const topLen = Vec.mag(Vec.sub(points[2], points[3]));
-                // 重新計算 RT(2) 基於 LT(3)
-                points[2] = Vec.add(points[3], Vec.mul(baseDir, topLen));
-            } 
-            else if(idx === 3) {
-                // 拖曳 LT：自由移動
-                // RT 跟著平移
-                const diff = Vec.sub(pos, points[3]);
-                points[3] = pos;
-                points[2] = Vec.add(points[2], diff);
+        window.onmousemove = window.ontouchmove = (e) => {
+            if(dragIdx === -1) return;
+            const pos = getPos(e);
+            if(shapeType === 'trap') {
+                if(dragIdx < 2) { 
+                    const dy = points[3].y - points[0].y;
+                    points[dragIdx] = pos;
+                    points[2].y = points[3].y = points[0].y + dy;
+                } else {
+                    pos.y = Math.min(pos.y, points[0].y - 30);
+                    points[dragIdx] = pos;
+                    points[dragIdx===2?3:2].y = pos.y;
+                }
+            } else {
+                points[dragIdx] = pos;
             }
-            else if(idx === 2) {
-                // 拖曳 RT：限制在平行軌道上
-                // 線：LT + t * baseDir
-                // 投影 pos 到這條線上
-                const vMouse = Vec.sub(pos, points[3]);
-                let projLen = Vec.dot(vMouse, baseDir);
-                
-                // 防止變成蝴蝶結 (上底長度至少 20px)
-                if(projLen < 20) projLen = 20;
-                
-                points[2] = Vec.add(points[3], Vec.mul(baseDir, projLen));
+            draw();
+            if(e.cancelable) e.preventDefault();
+        };
+
+        window.onmouseup = window.ontouchend = () => dragIdx = -1;
+
+        function validateBase(idx) {
+            const edges = getEdges();
+            const base = edges[idx];
+            const target = edges[2][0]; 
+            const H = V.proj(target, base[0], base[1]);
+
+            if(!V.inSeg(H, base[0], base[1])) {
+                document.getElementById('hint-box').innerHTML = "⚠️ <b>歪斜過度！</b> 請選另一組邊當底。";
+                selectedBaseIdx = -1;
+                updatePlayBtn(false);
+            } else {
+                selectedBaseIdx = idx;
+                document.getElementById('hint-box').innerHTML = "✅ <b>選定成功！</b> 可啟動動畫。";
+                updatePlayBtn(true);
             }
+            draw();
         }
 
-        /* =========================================
-           圖形計算與繪製
-           ========================================= */
-        function getPoly() {
-            if(currentTool === 'para') {
-                // P0(LB), P1(RB), P2(LT) -> 計算 P3(RT)
-                const base = Vec.sub(points[1], points[0]);
-                const pRT = Vec.add(points[2], base);
-                return [points[0], points[1], pRT, points[2]]; // 順序: LB, RB, RT, LT
-            }
-            return points; // Tri, Trap 已經是完整頂點
+        function updatePlayBtn(ready) {
+            const b = document.getElementById('playBtn');
+            b.disabled = !ready;
+            b.classList.toggle('ready', ready);
+            b.innerText = ready ? "▶ 啟動動畫" : (shapeType==='para' ? "▶ 請先選底邊" : "▶ 啟動動畫");
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const poly = getPoly();
+            const edges = getEdges();
+            const poly = edges.map(e => e[0]);
 
-            // 繪製填充
             ctx.beginPath(); ctx.moveTo(poly[0].x, poly[0].y);
-            for(let i=1; i<poly.length; i++) ctx.lineTo(poly[i].x, poly[i].y);
-            ctx.closePath();
-            ctx.fillStyle = 'rgba(67, 56, 202, 0.15)'; // 淡藍色底
-            ctx.fill();
-            ctx.lineWidth = 2; ctx.strokeStyle = '#4338ca';
-            ctx.stroke();
+            poly.forEach(p => ctx.lineTo(p.x, p.y));
+            ctx.closePath(); ctx.fillStyle = 'rgba(67, 56, 202, 0.08)'; ctx.fill();
 
-            // 繪製高 (示意)
+            edges.forEach((edge, i) => {
+                ctx.beginPath(); ctx.moveTo(edge[0].x, edge[0].y); ctx.lineTo(edge[1].x, edge[1].y);
+                ctx.lineWidth = (i === selectedBaseIdx) ? 6 : 2;
+                ctx.strokeStyle = (i === selectedBaseIdx) ? '#10b981' : '#4338ca';
+                ctx.stroke();
+            });
+
             if(!isAnim) {
-                let top = poly[poly.length-1]; // 最後一點通常是左上
-                if(currentTool === 'tri') top = poly[2];
-                const proj = Vec.project(top, poly[0], poly[1]);
-                ctx.setLineDash([5,5]); ctx.strokeStyle = '#ef4444';
-                ctx.beginPath(); ctx.moveTo(top.x, top.y); ctx.lineTo(proj.x, proj.y); ctx.stroke();
-                ctx.setLineDash([]);
+                points.forEach((p, i) => {
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 12, 0, Math.PI*2);
+                    ctx.fillStyle = i < 2 ? '#2563eb' : '#0ea5e9';
+                    ctx.fill(); ctx.strokeStyle='white'; ctx.lineWidth=2; ctx.stroke();
+                });
             }
-
-            // 繪製控制點
-            if(!isAnim) {
-                // 平行四邊形畫 3 個點 (因為 RT 是算出來的，不能拖)
-                // 三角形畫 3 個點
-                // 梯形畫 4 個點
-                let drawCount = points.length;
-                if(currentTool === 'para') {
-                     // 0, 1, 2(LT)
-                     drawDot(points[0], '#2563eb');
-                     drawDot(points[1], '#2563eb');
-                     drawDot(points[2], '#0ea5e9'); // Top point
-                } else {
-                     points.forEach((p,i) => drawDot(p, i<2 ? '#2563eb':'#0ea5e9'));
-                }
-
-                // 標示
-                ctx.fillStyle = "#1e3a8a"; ctx.font="bold 16px sans-serif";
-                const mid = Vec.mul(Vec.add(poly[0], poly[1]), 0.5);
-                ctx.fillText("底", mid.x-10, mid.y+25);
-            }
-            return poly;
         }
 
-        function drawDot(p, color) {
-            ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI*2);
-            ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle='white'; ctx.stroke();
-        }
-
-        /* =========================================
-           動畫引擎
-           ========================================= */
-        function startAnim() {
+        function runAnimation() {
             if(isAnim) return;
             isAnim = true;
-            animProgress = 0;
-            document.getElementById('animBtn').disabled = true;
+            let progress = 0;
+            const edges = getEdges();
+            const idx = selectedBaseIdx;
             
-            const poly = getPoly(); // 鎖定形狀
-
-            function loop() {
-                animProgress += 0.008; // 速度適中
-                if(animProgress > 1) animProgress = 1;
-                const t = easeInOut(animProgress);
-
+            function frame() {
+                progress += 0.015;
+                const t = progress < 0.5 ? 2*progress*progress : 1-Math.pow(-2*progress+2, 2)/2;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                if(currentTool === 'para') animPara(poly, t);
-                else if(currentTool === 'tri') animTri(poly, t);
-                else if(currentTool === 'trap') animTrap(poly, t);
-
-                if(animProgress < 1) {
-                    animId = requestAnimationFrame(loop);
+                if(shapeType === 'para') {
+                    let b1 = edges[idx][0], b2 = edges[idx][1];
+                    let t1 = (idx===0)?edges[2][1]:(idx===1)?edges[3][1]:(idx===2)?edges[0][1]:edges[1][1];
+                    let t2 = (idx===0)?edges[2][0]:(idx===1)?edges[3][0]:(idx===2)?edges[0][0]:edges[1][0];
+                    const H = V.proj(t1, b1, b2);
+                    const move = V.mul(V.sub(b2, b1), t);
+                    drawPoly([b1, H, t1], null, '#94a3b8', true);
+                    drawPoly([H, b2, t2, t1], 'rgba(67, 56, 202, 0.1)', '#4338ca');
+                    const tri = [b1, H, t1].map(p => V.add(p, move));
+                    drawPoly(tri, 'rgba(234, 88, 12, 0.85)', '#c2410c');
                 } else {
-                    // 動畫結束
-                    document.getElementById('animBtn').disabled = false;
-                    isAnim = false; 
-                    // 保持最後畫面，不重置，方便觀察
+                    const poly = edges.map(e => e[0]);
+                    const mPoint = V.mul(V.add(edges[1][0], edges[1][1]), 0.5);
+                    drawPoly(poly, 'rgba(67, 56, 202, 0.1)', '#4338ca');
+                    ctx.save();
+                    ctx.translate(mPoint.x, mPoint.y); ctx.rotate(Math.PI * t); ctx.translate(-mPoint.x, -mPoint.y);
+                    drawPoly(poly, 'rgba(234, 88, 12, 0.85)', '#c2410c');
+                    ctx.restore();
                 }
+
+                if(progress < 1) requestAnimationFrame(frame);
+                else isAnim = false;
             }
-            loop();
+            frame();
         }
 
-        // --- 平行四邊形動畫 (切割平移) ---
-        function animPara(poly, t) {
-            // poly: [LB, RB, RT, LT]
-            // 1. 算出垂足 H (LT 到底邊的投影)
-            const H = Vec.project(poly[3], poly[0], poly[1]);
-            
-            // 定義 "切割三角形" Triangle = (LB, H, LT)
-            // 定義 "主體" Body = (H, RB, RT, LT)
-            // 注意：如果平行四邊形非常扁 (LT 在 LB 左邊)，數學上 H 會跑去左邊，
-            // 這裡的繪圖順序 [H, RB, RT, LT] 依然構成一個多邊形 (可能非凸)，但 Canvas fill() 能正確處理。
-            
-            // 繪製主體 (不動的部分)
-            drawPolyShape([H, poly[1], poly[2], poly[3]], 'rgba(67, 56, 202, 0.2)', '#4338ca');
-            
-            // 計算平移向量 (底邊長度方向)
-            const moveVec = Vec.mul(Vec.sub(poly[1], poly[0]), t);
-            
-            // 移動的三角形
-            const tri = [poly[0], H, poly[3]];
-            const movedTri = tri.map(p => Vec.add(p, moveVec));
-            
-            // 繪製鬼影 (原位置)
-            if(t > 0.1) drawPolyShape(tri, 'transparent', '#94a3b8', true);
-            
-            // 繪製移動塊 (亮橘色)
-            drawPolyShape(movedTri, 'rgba(234, 88, 12, 0.8)', '#c2410c');
-        }
-
-        // --- 三角形動畫 (旋轉複製) ---
-        function animTri(poly, t) {
-            // poly: [LB, RB, Top]
-            drawPolyShape(poly, 'rgba(67, 56, 202, 0.2)', '#4338ca');
-            
-            // 旋轉中心：右腰中點
-            const M = Vec.mul(Vec.add(poly[1], poly[2]), 0.5);
-            
-            ctx.save();
-            ctx.translate(M.x, M.y);
-            ctx.rotate(Math.PI * t); // 180度
-            ctx.translate(-M.x, -M.y);
-            
-            drawPolyShape(poly, 'rgba(234, 88, 12, 0.8)', '#c2410c');
-            ctx.restore();
-            
-            // 標示旋轉點
-            ctx.beginPath(); ctx.arc(M.x, M.y, 5, 0, Math.PI*2); ctx.fillStyle="#333"; ctx.fill();
-        }
-
-        // --- 梯形動畫 (旋轉複製) ---
-        function animTrap(poly, t) {
-            // poly: [LB, RB, RT, LT]
-            drawPolyShape(poly, 'rgba(67, 56, 202, 0.2)', '#4338ca');
-            
-            // 旋轉中心：右腰中點 (RB, RT)
-            const M = Vec.mul(Vec.add(poly[1], poly[2]), 0.5);
-            
-            ctx.save();
-            ctx.translate(M.x, M.y);
-            ctx.rotate(Math.PI * t);
-            ctx.translate(-M.x, -M.y);
-            
-            drawPolyShape(poly, 'rgba(234, 88, 12, 0.8)', '#c2410c');
-            ctx.restore();
-            
-            ctx.beginPath(); ctx.arc(M.x, M.y, 5, 0, Math.PI*2); ctx.fillStyle="#333"; ctx.fill();
-        }
-
-        function drawPolyShape(pts, fill, stroke, dash=false) {
+        function drawPoly(pts, fill, stroke, dash=false) {
             ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
-            for(let i=1; i<pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+            pts.forEach(p => ctx.lineTo(p.x, p.y));
             ctx.closePath();
-            ctx.fillStyle = fill; ctx.fill();
-            ctx.lineWidth = 2; ctx.strokeStyle = stroke;
-            if(dash) ctx.setLineDash([5,5]);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            if(fill) { ctx.fillStyle = fill; ctx.fill(); }
+            ctx.strokeStyle = stroke; ctx.setLineDash(dash?[5,5]:[]);
+            ctx.lineWidth = 2; ctx.stroke();
         }
 
-        function easeInOut(t) { return t<.5 ? 2*t*t : -1+(4-2*t)*t; }
-
-        // 繪製 icon
-        function drawIcons() {
-            const draw = (id, pts, col) => {
-                const c = document.getElementById(id); if(!c)return;
-                const x = c.getContext('2d');
-                x.strokeStyle=col; x.lineWidth=3;
-                x.beginPath(); x.moveTo(pts[0][0], pts[0][1]);
-                for(let i=1; i<pts.length; i++) x.lineTo(pts[i][0], pts[i][1]);
-                x.closePath(); x.stroke();
-            };
-            draw('icon-trap', [[10,50],[90,50],[70,10],[30,10]], '#d97706');
-            draw('icon-rect', [[5,5],[55,5],[55,35],[5,35]], '#2563eb');
-            draw('icon-sq', [[5,5],[45,5],[45,45],[5,45]], '#db2777');
-            draw('icon-rhom', [[30,5],[55,20],[30,35],[5,20]], '#7c3aed');
-        }
-
+        window.onload = reset;
     </script>
 </body>
 </html>
