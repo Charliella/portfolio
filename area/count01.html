@@ -174,8 +174,8 @@
             <button class="key action" onclick="check()">GO</button>
         </div>
         <div class="btn-side">
-            <button class="special-btn cheat-btn" onclick="execCheat()">瞬間洞察</button>
-            <button class="special-btn rest-btn" onclick="openRest()">休息存檔</button>
+            <button class="special-btn cheat-btn" onclick="execCheat()">作弊洞察</button>
+            <button class="special-btn rest-btn" onclick="openRest()">休息結算</button>
             <button class="key" style="background:none; border: 1px solid #444; font-size: 14px;" onclick="location.reload()">重新啟動</button>
         </div>
     </div>
@@ -213,8 +213,8 @@
     // 故事內容 (縮減顯示以便預覽，實際代碼中請保留您完整的文字)
     const stories = {
         true: [
-            "【村莊平民】{name}回到了家鄉，幫老闆算清雞蛋，獲得特大號雞蛋！大家為你歡呼！",
-            "【新兵戰士】{name}在演武場清點寶劍，正確答案免除了處罰，戰友們紛紛豎起大拇指！",
+            "【村莊平民】{name}回到了家鄉，在商店遇到老闆賣雞蛋時很困擾，不知道該怎麼辦，挺身而出主動幫老闆算雞蛋的數量，算得又快又準，老闆非常開心，送給{name}特大號雞蛋！大家為{name}歡呼！",
+            "【新兵戰士】訓練場的寶劍遺失了，大家都很緊張，{name}在訓練場清點寶劍，發現其實只是計算錯誤而以，因為算出正確答案，讓所有士兵都免除了處罰，戰友們紛紛豎起大拇指為{name}歡呼！",
             "【偵查小隊】{name}潛伏森林算出敵營規模，神速情報避開埋伏，隊長稱讚你是偵查眼！",
             "【重裝衛兵】{name}分配弩炮重量，精確數值穩如泰山，大家今晚能安心睡覺了！",
             "【百人隊長】{name}統帥戰士遠征，輕鬆分配口糧，士兵們崇拜地看著你！",
@@ -225,8 +225,8 @@
             "【數學戰神】諸神黃昏降臨，{name}劃下最終解答重歸星辰軌道，宇宙秩序之核心！"
         ],
         false: [
-            "【假的村莊平民】{name}算錯雞蛋，老闆拿掃帚追你，全村小狗都在嘲笑你！",
-            "【假的新兵戰士】{name}抄錯解答報出七十七萬隻大象，教官氣瘋，你被仙人掌刺到大叫！",
+            "【假的村莊平民】{name}回到家鄉以後，雜貨店老闆請你幫忙算雞蛋，連雞蛋的數量都算錯，老闆拿掃帚追你，全村小狗都在嘲笑{name}「汪汪汪汪汪汪汪汪汪汪！」，翻譯：「哈哈哈連雞蛋都不會算！」",
+            "【假的新兵戰士】訓練場的寶劍遺失後，請{name}幫忙清點，{name}計算以後，算出的寶劍更少了，隊長叫你回家製作寶劍賠償，結果回家後把寶劍做成了棒棒糖，被隊長趕出軍營了。",
             "【假的偵查小隊】{name}把七個敵人算成七萬，全軍撤退五十公里，結果人家在烤地瓜！",
             "【假的重裝衛兵】{name}盔甲裡塞棉花糖，重心不穩滾進護城河，丟臉到外太空！",
             "【假的百人隊長】{name}把麵包算成石頭，士兵把你丟進池塘餵魚，作弊失靈啦！",
